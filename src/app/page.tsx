@@ -3,6 +3,7 @@
 import * as React from "react";
 import { EditorShell } from "@/components/layout/EditorShell";
 import { ImportModal } from "@/components/import/ImportModal";
+import { MapCanvas } from "@/components/map/MapCanvas";
 import { useEditorStore } from "@/store/editorStore";
 import { FeatureListItem } from "@/components/layout/LeftSidebar";
 import { SelectedFeatureDetail } from "@/components/layout/PropertiesPanel";
@@ -15,9 +16,13 @@ export default function Home() {
     importModalOpen,
     setImportModalOpen,
     selectedFeatureIds,
+    toggleSelectFeature,
     toggleFeatureVisibility,
     renameFeature,
     resetProject,
+    backgroundMode,
+    focusedFeatureId,
+    setFocusedFeatureId,
   } = useEditorStore();
 
   const sidebarFeatures: FeatureListItem[] = React.useMemo(() => {
@@ -56,7 +61,16 @@ export default function Home() {
         onNewProjectClick={resetProject}
         onToggleVisibility={toggleFeatureVisibility}
         onRenameFeature={renameFeature}
-      />
+        onLocateFeature={(id) => setFocusedFeatureId(id)}
+      >
+        <MapCanvas
+          features={features}
+          selectedFeatureIds={selectedFeatureIds}
+          backgroundMode={backgroundMode}
+          focusedFeatureId={focusedFeatureId}
+          onSelectFeature={toggleSelectFeature}
+        />
+      </EditorShell>
 
       <ImportModal
         isOpen={importModalOpen}
