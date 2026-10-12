@@ -102,4 +102,5 @@ npm install
 ## 8. Current Development Status
 
 - **Milestone 1 — Project Foundation**: ✅ Completed (Next.js 16, React 19, Tailwind CSS 4, UI shell, Vitest, Playwright, Zustand store).
-- **Milestone 2 — KML Import & Data Model**: Next in sequence.
+- **Milestone 2 — KML Import & Data Model**: ✅ Completed (KML parser, domain types, summary cards, drag-and-drop modal, 13 parser & edge fixture tests).
+- **Milestone 3 — Map Canvas & Path List**: Next in sequence.
