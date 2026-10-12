@@ -7,8 +7,10 @@ import { CombineModal } from "@/components/combine/CombineModal";
 import { JoinModal } from "@/components/join/JoinModal";
 import { SnapModal } from "@/components/snap/SnapModal";
 import { ExportModal } from "@/components/export/ExportModal";
+import { NewProjectModal } from "@/components/project/NewProjectModal";
 import { MapCanvas } from "@/components/map/MapCanvas";
 import { useEditorStore } from "@/store/editorStore";
+import { loadProjectSession, saveProjectSession } from "@/lib/db/projectDb";
 import { FeatureListItem } from "@/components/layout/LeftSidebar";
 import { SelectedFeatureDetail } from "@/components/layout/PropertiesPanel";
 
@@ -16,6 +18,7 @@ export default function Home() {
   const {
     features,
     setFeatures,
+    importSummary,
     setImportSummary,
     importModalOpen,
     setImportModalOpen,
@@ -27,6 +30,8 @@ export default function Home() {
     setJoinModalOpen,
     snapModalOpen,
     setSnapModalOpen,
+    newProjectModalOpen,
+    setNewProjectModalOpen,
     selectedFeatureIds,
     toggleSelectFeature,
     toggleFeatureVisibility,
@@ -34,6 +39,8 @@ export default function Home() {
     combineSelectedFeatures,
     joinSelectedFeatures,
     snapSelectedFeatures,
+    restoreSession,
+    setStorageStatus,
     undo,
     redo,
     past,
@@ -43,6 +50,37 @@ export default function Home() {
     focusedFeatureId,
     setFocusedFeatureId,
   } = useEditorStore();
+
+  const isInitialLoadRef = React.useRef(true);
+
+  // Restore saved session from IndexedDB on initial mount
+  React.useEffect(() => {
+    loadProjectSession().then((session) => {
+      if (session && session.features && session.features.length > 0) {
+        restoreSession(
+          session.features,
+          session.selectedFeatureIds || [],
+          session.importSummary || null
+        );
+      }
+      isInitialLoadRef.current = false;
+    });
+  }, [restoreSession]);
+
+  // Debounced auto-save to IndexedDB whenever features change
+  React.useEffect(() => {
+    if (isInitialLoadRef.current) return;
+    if (features.length === 0) return;
+
+    setStorageStatus("saving");
+    const timer = setTimeout(() => {
+      saveProjectSession(features, selectedFeatureIds, importSummary).then(() => {
+        setStorageStatus("saved");
+      });
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [features, selectedFeatureIds, importSummary, setStorageStatus]);
 
   // Keyboard shortcuts for Undo and Redo
   React.useEffect(() => {
@@ -109,7 +147,13 @@ export default function Home() {
         selectedDetail={selectedDetail}
         onImportClick={() => setImportModalOpen(true)}
         onExportClick={() => setExportModalOpen(true)}
-        onNewProjectClick={resetProject}
+        onNewProjectClick={() => {
+          if (features.length > 0) {
+            setNewProjectModalOpen(true);
+          } else {
+            resetProject();
+          }
+        }}
         onToggleVisibility={toggleFeatureVisibility}
         onRenameFeature={renameFeature}
         onLocateFeature={(id) => setFocusedFeatureId(id)}
@@ -173,6 +217,13 @@ export default function Home() {
         onConfirmSnap={(candidate, mode) => {
           snapSelectedFeatures(candidate, mode);
         }}
+      />
+
+      <NewProjectModal
+        isOpen={newProjectModalOpen}
+        features={features}
+        onClose={() => setNewProjectModalOpen(false)}
+        onConfirmReset={resetProject}
       />
     </>
   );
