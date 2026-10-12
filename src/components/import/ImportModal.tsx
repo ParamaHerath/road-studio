@@ -40,7 +40,7 @@ export function ImportModal({ isOpen, onClose, onImportSuccess }: ImportModalPro
 
   if (!isOpen) return null;
 
-  const handleProcessFile = async (file: File) => {
+  const handleProcessFile = async (file: File, fileHandle?: FileSystemFileHandle) => {
     setError(null);
     setImportResult(null);
 
@@ -60,13 +60,43 @@ export function ImportModal({ isOpen, onClose, onImportSuccess }: ImportModalPro
         if (!result.success) {
           setError(result.error || "Failed to parse KML file.");
         } else {
-          setImportResult(result);
+          setImportResult({ ...result, fileHandle });
         }
       }, 50);
     } catch (err) {
       setLoading(false);
       setError(`Failed to read file: ${err instanceof Error ? err.message : String(err)}`);
     }
+  };
+
+  const handleBrowseFiles = async () => {
+    if (
+      typeof window !== "undefined" &&
+      "showOpenFilePicker" in window &&
+      typeof window.showOpenFilePicker === "function"
+    ) {
+      try {
+        const [handle] = await window.showOpenFilePicker({
+          types: [
+            {
+              description: "KML Road Network Files",
+              accept: {
+                "application/vnd.google-earth.kml+xml": [".kml"],
+                "application/xml": [".xml"],
+              },
+            },
+          ],
+        });
+        const file = await handle.getFile();
+        await handleProcessFile(file, handle);
+        return;
+      } catch (err: unknown) {
+        if (err instanceof DOMException && err.name === "AbortError") {
+          return;
+        }
+      }
+    }
+    fileInputRef.current?.click();
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -131,7 +161,7 @@ export function ImportModal({ isOpen, onClose, onImportSuccess }: ImportModalPro
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
-              onClick={() => fileInputRef.current?.click()}
+              onClick={handleBrowseFiles}
               className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 text-center cursor-pointer transition-all ${
                 isDragging
                   ? "border-sky-400 bg-sky-500/10 scale-[0.99]"

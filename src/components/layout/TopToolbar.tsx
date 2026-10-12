@@ -5,6 +5,7 @@ import {
   Route,
   FolderOpen,
   FilePlus,
+  Save,
   Undo2,
   Redo2,
   Layers,
@@ -20,6 +21,7 @@ import { useEditorStore, TileBackgroundMode } from "@/store/editorStore";
 
 interface TopToolbarProps {
   onImportClick?: () => void;
+  onSaveClick?: () => void;
   onExportClick?: () => void;
   onNewProjectClick?: () => void;
   onUndoClick?: () => void;
@@ -30,6 +32,7 @@ interface TopToolbarProps {
 
 export function TopToolbar({
   onImportClick,
+  onSaveClick,
   onExportClick,
   onNewProjectClick,
   onUndoClick,
@@ -45,6 +48,8 @@ export function TopToolbar({
     backgroundMode,
     setBackgroundMode,
     storageStatus,
+    features,
+    currentFileName,
   } = useEditorStore();
 
   return (
@@ -116,6 +121,27 @@ export function TopToolbar({
         >
           <FolderOpen className="h-3.5 w-3.5" />
           <span>Import KML</span>
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onSaveClick}
+          disabled={features.length === 0}
+          className="gap-1.5 border-slate-700 bg-slate-800/80 text-emerald-400 hover:text-emerald-300 hover:border-emerald-500/50"
+          title={
+            features.length > 0
+              ? `Save / Overwrite "${currentFileName}" (Ctrl+S) — ${features.length} segments remaining`
+              : "No road segments loaded"
+          }
+        >
+          <Save className="h-3.5 w-3.5" />
+          <span>Save KML</span>
+          {features.length > 0 && (
+            <Badge variant="secondary" className="text-[10px] px-1 py-0 ml-0.5 bg-slate-800 text-emerald-300 font-mono">
+              {features.length}
+            </Badge>
+          )}
         </Button>
 
         <div className="mx-1 h-4 w-[1px] bg-slate-800" />

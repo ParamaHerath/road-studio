@@ -53,4 +53,5 @@ export interface ImportResult {
   summary: ImportSummary;
   error?: string;
   rawKml?: string;
+  fileHandle?: FileSystemFileHandle;
 }

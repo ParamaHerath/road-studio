@@ -3,7 +3,9 @@ import { RoadFeature, ImportSummary } from "@/types/road";
 import { combineFeatures } from "@/lib/geo/combine";
 import { joinFeatures, JoinCandidate } from "@/lib/geo/join";
 import { applySnap, SnapCandidate, SnapMode } from "@/lib/geo/snap";
-import { clearProjectSession } from "@/lib/db/projectDb";
+import { clearProjectSession, saveProjectSession } from "@/lib/db/projectDb";
+import { serializeRoadFeaturesToKml } from "@/lib/kml/serializer";
+import { saveKmlToDisk, SaveKmlResult } from "@/lib/kml/save";
 
 export type TileBackgroundMode = "osm" | "satellite" | "minimal";
 export type StorageStatus = "idle" | "saving" | "saved" | "restored";
@@ -28,6 +30,9 @@ export interface EditorUiState {
   newProjectModalOpen: boolean;
   focusedFeatureId: string | null;
   storageStatus: StorageStatus;
+  currentFileName: string;
+  fileHandle: FileSystemFileHandle | null;
+  saveStatusMessage: string | null;
 
   // Features data
   features: RoadFeature[];
@@ -54,6 +59,9 @@ export interface EditorUiState {
   setNewProjectModalOpen: (open: boolean) => void;
   setFocusedFeatureId: (id: string | null) => void;
   setStorageStatus: (status: StorageStatus) => void;
+  setCurrentFileName: (name: string) => void;
+  setFileHandle: (handle: FileSystemFileHandle | null) => void;
+  setSaveStatusMessage: (msg: string | null) => void;
   setFeatures: (features: RoadFeature[]) => void;
   setImportSummary: (summary: ImportSummary | null) => void;
   toggleFeatureVisibility: (id: string) => void;
@@ -64,6 +72,7 @@ export interface EditorUiState {
     candidate: SnapCandidate,
     mode: SnapMode
   ) => { updatedFeatureA: RoadFeature; updatedFeatureB: RoadFeature } | null;
+  saveCurrentKml: () => Promise<SaveKmlResult>;
   restoreSession: (
     features: RoadFeature[],
     selectedIds: string[],
@@ -89,6 +98,9 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
   newProjectModalOpen: false,
   focusedFeatureId: null,
   storageStatus: "idle",
+  currentFileName: "road-network.kml",
+  fileHandle: null,
+  saveStatusMessage: null,
   features: [],
   importSummary: null,
   past: [],
@@ -119,12 +131,55 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
   setNewProjectModalOpen: (open) => set({ newProjectModalOpen: open }),
   setFocusedFeatureId: (id) => set({ focusedFeatureId: id }),
   setStorageStatus: (status) => set({ storageStatus: status }),
+  setCurrentFileName: (name) => set({ currentFileName: name }),
+  setFileHandle: (handle) => set({ fileHandle: handle }),
+  setSaveStatusMessage: (msg) => set({ saveStatusMessage: msg }),
+
+  saveCurrentKml: async () => {
+    const current = get();
+    if (current.features.length === 0) {
+      return {
+        success: false,
+        handle: null,
+        mode: "download" as const,
+        message: "No road segments to save.",
+      };
+    }
+
+    const { kmlString } = serializeRoadFeaturesToKml(current.features, {
+      projectName: current.currentFileName.replace(/\.kml$/i, ""),
+      includeExtendedData: true,
+    });
+
+    const result = await saveKmlToDisk(
+      kmlString,
+      current.currentFileName,
+      current.fileHandle
+    );
+
+    if (result.success) {
+      set({
+        storageStatus: "saved",
+        saveStatusMessage: `${result.message} (${current.features.length} segments remaining)`,
+        fileHandle: result.handle || current.fileHandle,
+        currentFileName: result.handle?.name || current.currentFileName,
+      });
+      saveProjectSession(current.features, current.selectedFeatureIds, current.importSummary);
+    } else {
+      set({
+        saveStatusMessage: result.message,
+      });
+    }
+
+    return result;
+  },
 
   restoreSession: (features, selectedIds, summary) =>
     set({
       features,
       selectedFeatureIds: new Set(selectedIds),
       importSummary: summary,
+      currentFileName: summary?.filename || "road-network.kml",
       past: [],
       future: [],
       storageStatus: "restored",
@@ -180,9 +235,13 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
 
     const remainingFeatures = current.features.filter((f) => !toCombineIdSet.has(f.id));
     const nextFeatures = [...remainingFeatures, combinedFeature];
+    const nextSummary = current.importSummary
+      ? { ...current.importSummary, featureCount: nextFeatures.length }
+      : null;
 
     set({
       features: nextFeatures,
+      importSummary: nextSummary,
       selectedFeatureIds: new Set([combinedFeature.id]),
       past: [...current.past, snapshot],
       future: [],
@@ -206,9 +265,13 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
 
     const remainingFeatures = current.features.filter((f) => !toJoinIdSet.has(f.id));
     const nextFeatures = [...remainingFeatures, joinedFeature];
+    const nextSummary = current.importSummary
+      ? { ...current.importSummary, featureCount: nextFeatures.length }
+      : null;
 
     set({
       features: nextFeatures,
+      importSummary: nextSummary,
       selectedFeatureIds: new Set([joinedFeature.id]),
       past: [...current.past, snapshot],
       future: [],
@@ -301,6 +364,9 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
       exportModalOpen: false,
       newProjectModalOpen: false,
       storageStatus: "idle",
+      currentFileName: "road-network.kml",
+      fileHandle: null,
+      saveStatusMessage: null,
     });
   },
 }));
