@@ -50,9 +50,7 @@ export function TopToolbar({
       <div className="flex items-center gap-3">
 
         <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-sky-400 to-blue-600 text-slate-950 shadow-sm">
-            <Route className="h-4 w-4 stroke-[2.5]" />
-          </div>
+          <Route className="h-5 w-5 text-white stroke-[2.25]" />
           <div className="flex items-baseline gap-2">
             <span className="font-bold tracking-tight text-sm text-zinc-100">
               Road Studio
