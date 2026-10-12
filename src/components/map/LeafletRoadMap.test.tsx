@@ -35,6 +35,7 @@ vi.mock("leaflet", () => {
       map: vi.fn(() => mockMap),
       featureGroup: vi.fn(() => mockFeatureGroup),
       polyline: vi.fn(() => mockPolyline),
+      circleMarker: vi.fn(() => ({ addTo: vi.fn().mockReturnThis() })),
       tileLayer: vi.fn(() => ({ addTo: vi.fn().mockReturnThis() })),
       latLngBounds: vi.fn(() => ({ isValid: () => true })),
       DomEvent: { stopPropagation: vi.fn() },

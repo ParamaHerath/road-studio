@@ -14,6 +14,17 @@ export interface LeafletRoadMapProps {
   satelliteTileUrl?: string;
 }
 
+export const ROAD_COLORS = {
+  // Default unselected road path color (darker slate-gray)
+  default: "#52525b",
+  // Hover road path color (crisp white)
+  hover: "#f4f4f5",
+  // Selected road path color (electric blue)
+  selected: "#00d2ff",
+  // Segment endpoint bounds dot color
+  endpointDot: "#38bdf8",
+} as const;
+
 export function LeafletRoadMap({
   features,
   selectedFeatureIds,
@@ -26,6 +37,10 @@ export function LeafletRoadMap({
   const mapInstanceRef = React.useRef<L.Map | null>(null);
   const tileLayerRef = React.useRef<L.TileLayer | null>(null);
   const featureGroupRef = React.useRef<L.FeatureGroup | null>(null);
+  const polylineMapRef = React.useRef<Map<string, L.Polyline>>(new Map());
+  const endpointDotsGroupRef = React.useRef<L.FeatureGroup | null>(null);
+  const selectedFeatureIdsRef = React.useRef(selectedFeatureIds);
+  selectedFeatureIdsRef.current = selectedFeatureIds;
 
   // Initialize Leaflet Map
   React.useEffect(() => {
@@ -44,6 +59,9 @@ export function LeafletRoadMap({
 
     const featureGroup = L.featureGroup().addTo(map);
     featureGroupRef.current = featureGroup;
+
+    const dotsGroup = L.featureGroup().addTo(map);
+    endpointDotsGroupRef.current = dotsGroup;
 
     // Invalidate size after layout settles
     const timer = setTimeout(() => {
@@ -98,17 +116,15 @@ export function LeafletRoadMap({
     };
   }, []);
 
-  const polylineMapRef = React.useRef<Map<string, L.Polyline>>(new Map());
-  const selectedFeatureIdsRef = React.useRef(selectedFeatureIds);
-  selectedFeatureIdsRef.current = selectedFeatureIds;
-
-  // Render Features on Map: only re-creates layers when features or onSelectFeature change
+  // Render Features & Endpoint Bounds Dots on Map: re-creates layers when features or onSelectFeature change
   React.useEffect(() => {
     const map = mapInstanceRef.current;
     const group = featureGroupRef.current;
+    const dotsGroup = endpointDotsGroupRef.current;
     if (!map || !group) return;
 
     group.clearLayers();
+    if (dotsGroup) dotsGroup.clearLayers();
     polylineMapRef.current.clear();
 
     const visibleFeatures = features.filter((f) => f.visible);
@@ -129,7 +145,7 @@ export function LeafletRoadMap({
           : feat.geometry.coordinates.map((line) => line.map(toLatLng));
 
       const polyline = L.polyline(latLngs, {
-        color: isSelected ? "#f59e0b" : "#d4d4d8",
+        color: isSelected ? ROAD_COLORS.selected : ROAD_COLORS.default,
         weight: isSelected ? 5.5 : 3.5,
         opacity: isSelected ? 1.0 : 0.85,
         lineCap: "round",
@@ -140,7 +156,7 @@ export function LeafletRoadMap({
       polyline.on("mouseover", () => {
         if (!selectedFeatureIdsRef.current.has(feat.id)) {
           polyline.setStyle({
-            color: "#ffffff",
+            color: ROAD_COLORS.hover,
             weight: 5,
             opacity: 1,
           });
@@ -150,7 +166,7 @@ export function LeafletRoadMap({
       polyline.on("mouseout", () => {
         if (!selectedFeatureIdsRef.current.has(feat.id)) {
           polyline.setStyle({
-            color: "#d4d4d8",
+            color: ROAD_COLORS.default,
             weight: 3.5,
             opacity: 0.85,
           });
@@ -176,6 +192,33 @@ export function LeafletRoadMap({
 
       group.addLayer(polyline);
       polylineMapRef.current.set(feat.id, polyline);
+
+      // Add tiny dots marking the start & end boundaries of each individual segment
+      if (dotsGroup) {
+        const lines =
+          feat.geometry.type === "LineString"
+            ? [feat.geometry.coordinates]
+            : feat.geometry.coordinates;
+
+        lines.forEach((line) => {
+          if (line.length >= 2) {
+            const startPt = toLatLng(line[0]);
+            const endPt = toLatLng(line[line.length - 1]);
+
+            [startPt, endPt].forEach((pt) => {
+              const dot = L.circleMarker(pt, {
+                radius: 3.5,
+                color: "#09090b",
+                weight: 1.5,
+                fillColor: ROAD_COLORS.endpointDot,
+                fillOpacity: 0.9,
+                interactive: false,
+              });
+              dotsGroup.addLayer(dot);
+            });
+          }
+        });
+      }
     });
   }, [features, onSelectFeature]);
 
@@ -184,7 +227,7 @@ export function LeafletRoadMap({
     polylineMapRef.current.forEach((polyline, id) => {
       const isSelected = selectedFeatureIds.has(id);
       polyline.setStyle({
-        color: isSelected ? "#f59e0b" : "#d4d4d8",
+        color: isSelected ? ROAD_COLORS.selected : ROAD_COLORS.default,
         weight: isSelected ? 5.5 : 3.5,
         opacity: isSelected ? 1.0 : 0.85,
       });
