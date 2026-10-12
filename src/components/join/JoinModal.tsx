@@ -47,7 +47,9 @@ export function JoinModal({
 
   const roadName = userRoadName !== null ? userRoadName : defaultName;
 
-  if (!isOpen || selectedFeatures.length !== 2) return null;
+  const isExactTwo = selectedFeatures.length === 2;
+
+  if (!isOpen || selectedFeatures.length < 2) return null;
 
   const handleCloseModal = () => {
     setSelectedCandidateId(null);
@@ -94,12 +96,20 @@ export function JoinModal({
 
         {/* Content */}
         <div className="p-5 flex flex-col gap-4 max-h-[75vh] overflow-y-auto">
-          {candidates.length === 0 ? (
+          {!isExactTwo ? (
+            <div className="flex flex-col items-center justify-center p-6 text-center text-zinc-400">
+              <AlertTriangle className="h-8 w-8 text-amber-400 mb-2" />
+              <p className="text-xs font-semibold text-zinc-200">Pairwise Operation</p>
+              <p className="text-[11px] text-zinc-400 mt-1 max-w-xs">
+                Joining endpoints connects exactly 2 road segments into a continuous line. You currently have {selectedFeatures.length} segments selected. Please select exactly 2 adjacent segments, or use &ldquo;Combine Paths&rdquo; to group all {selectedFeatures.length} segments into one multipart road.
+              </p>
+            </div>
+          ) : candidates.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-6 text-center text-zinc-400">
               <AlertTriangle className="h-8 w-8 text-amber-400 mb-2" />
               <p className="text-xs font-semibold text-zinc-200">No Compatible Endpoints Found</p>
               <p className="text-[11px] text-zinc-500 mt-1 max-w-xs">
-                The endpoints of these two roads are further than 500 metres apart. Use &ldquo;Combine&rdquo; to group them safely as a multipart road.
+                The endpoints of these two roads are further than 500 metres apart. Use &ldquo;Combine&rdquo; to group them safely as a multipart road, or use &ldquo;Snap&rdquo; to bring endpoints together.
               </p>
             </div>
           ) : (

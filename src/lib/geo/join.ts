@@ -31,16 +31,24 @@ export function findJoinCandidates(
   featureB: RoadFeature,
   maxGapMeters = 200
 ): JoinCandidate[] {
-  // Only connectable if single line or principal line components can be inspected
-  const coordsA =
+  // Extract all continuous line components to check endpoints
+  const linesA: Coordinate[][] =
     featureA.geometry.type === "LineString"
-      ? featureA.geometry.coordinates
-      : featureA.geometry.coordinates[0];
+      ? [featureA.geometry.coordinates]
+      : featureA.geometry.coordinates;
 
-  const coordsB =
+  const linesB: Coordinate[][] =
     featureB.geometry.type === "LineString"
-      ? featureB.geometry.coordinates
-      : featureB.geometry.coordinates[0];
+      ? [featureB.geometry.coordinates]
+      : featureB.geometry.coordinates;
+
+  if (linesA.length === 0 || linesB.length === 0) {
+    return [];
+  }
+
+  // Use the primary/outer endpoints of each feature
+  const coordsA = linesA[0];
+  const coordsB = linesB[0];
 
   if (!coordsA || coordsA.length < 2 || !coordsB || coordsB.length < 2) {
     return [];
