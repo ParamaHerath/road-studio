@@ -32,21 +32,102 @@ interface LeftSidebarProps {
   onLocateFeature?: (id: string) => void;
 }
 
+interface FeatureRowProps {
+  feature: FeatureListItem;
+  isSelected: boolean;
+  onToggleSelect: (id: string) => void;
+  onLocateFeature?: (id: string) => void;
+  onToggleVisibility?: (id: string) => void;
+}
+
+const FeatureRow = React.memo(function FeatureRow({
+  feature,
+  isSelected,
+  onToggleSelect,
+  onLocateFeature,
+  onToggleVisibility,
+}: FeatureRowProps) {
+  return (
+    <div
+      onClick={() => onToggleSelect(feature.id)}
+      className={`flex items-center justify-between px-3 py-2 text-xs cursor-pointer transition-colors ${
+        isSelected
+          ? "bg-zinc-800/80 border-l-2 border-white text-zinc-100"
+          : "hover:bg-zinc-900/60 text-zinc-300"
+      }`}
+    >
+      <div className="flex items-center gap-2.5 min-w-0 pr-2">
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={() => {}} // handled by row click
+          className="h-3.5 w-3.5 rounded border-zinc-700 bg-zinc-900 text-white accent-zinc-200 focus:ring-0 cursor-pointer"
+        />
+        <div className="truncate">
+          <div className="font-medium text-zinc-200 truncate">
+            {feature.name || "Unnamed Road"}
+          </div>
+          <div className="flex items-center gap-2 text-[10px] text-zinc-500">
+            <span>{feature.type}</span>
+            <span>•</span>
+            <span>{feature.componentCount} seg</span>
+            <span>•</span>
+            <span>{feature.coordinateCount} pts</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-1 shrink-0">
+        {onLocateFeature && (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              onLocateFeature(feature.id);
+            }}
+            title="Focus on map"
+            className="h-6 w-6 text-zinc-400 hover:text-white"
+          >
+            <MapPin className="h-3 w-3" />
+          </Button>
+        )}
+        {onToggleVisibility && (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleVisibility(feature.id);
+            }}
+            title={feature.visible ? "Hide feature" : "Show feature"}
+            className="h-6 w-6 text-zinc-400 hover:text-white"
+          >
+            {feature.visible ? (
+              <Eye className="h-3 w-3 text-zinc-300" />
+            ) : (
+              <EyeOff className="h-3 w-3 text-zinc-600" />
+            )}
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+});
+
 export function LeftSidebar({
   features = [],
   onToggleVisibility,
   onLocateFeature,
 }: LeftSidebarProps) {
-  const {
-    sidebarOpen,
-    toggleSidebar,
-    searchQuery,
-    setSearchQuery,
-    selectedFeatureIds,
-    toggleSelectFeature,
-    setSelectedFeatureIds,
-    clearSelection,
-  } = useEditorStore();
+  const sidebarOpen = useEditorStore((state) => state.sidebarOpen);
+  const toggleSidebar = useEditorStore((state) => state.toggleSidebar);
+  const searchQuery = useEditorStore((state) => state.searchQuery);
+  const setSearchQuery = useEditorStore((state) => state.setSearchQuery);
+  const selectedFeatureIds = useEditorStore((state) => state.selectedFeatureIds);
+  const toggleSelectFeature = useEditorStore((state) => state.toggleSelectFeature);
+  const setSelectedFeatureIds = useEditorStore((state) => state.setSelectedFeatureIds);
+  const clearSelection = useEditorStore((state) => state.clearSelection);
 
   const filteredFeatures = React.useMemo(() => {
     if (!searchQuery.trim()) return features;
@@ -179,71 +260,14 @@ export function LeftSidebar({
           filteredFeatures.map((feature) => {
             const isSelected = selectedFeatureIds.has(feature.id);
             return (
-              <div
+              <FeatureRow
                 key={feature.id}
-                onClick={() => toggleSelectFeature(feature.id)}
-                className={`flex items-center justify-between px-3 py-2 text-xs cursor-pointer transition-colors ${
-                  isSelected
-                    ? "bg-zinc-800/80 border-l-2 border-white text-zinc-100"
-                    : "hover:bg-zinc-900/60 text-zinc-300"
-                }`}
-              >
-                <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={() => {}} // handled by row click
-                    className="h-3.5 w-3.5 rounded border-zinc-700 bg-zinc-900 text-white accent-zinc-200 focus:ring-0 cursor-pointer"
-                  />
-                  <div className="truncate">
-                    <div className="font-medium text-zinc-200 truncate">
-                      {feature.name || "Unnamed Road"}
-                    </div>
-                    <div className="flex items-center gap-2 text-[10px] text-zinc-500">
-                      <span>{feature.type}</span>
-                      <span>•</span>
-                      <span>{feature.componentCount} seg</span>
-                      <span>•</span>
-                      <span>{feature.coordinateCount} pts</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1 shrink-0">
-                  {onLocateFeature && (
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onLocateFeature(feature.id);
-                      }}
-                      title="Focus on map"
-                      className="h-6 w-6 text-zinc-400 hover:text-white"
-                    >
-                      <MapPin className="h-3 w-3" />
-                    </Button>
-                  )}
-                  {onToggleVisibility && (
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onToggleVisibility(feature.id);
-                      }}
-                      title={feature.visible ? "Hide feature" : "Show feature"}
-                      className="h-6 w-6 text-zinc-400 hover:text-white"
-                    >
-                      {feature.visible ? (
-                        <Eye className="h-3 w-3 text-zinc-300" />
-                      ) : (
-                        <EyeOff className="h-3 w-3 text-zinc-600" />
-                      )}
-                    </Button>
-                  )}
-                </div>
-              </div>
+                feature={feature}
+                isSelected={isSelected}
+                onToggleSelect={toggleSelectFeature}
+                onLocateFeature={onLocateFeature}
+                onToggleVisibility={onToggleVisibility}
+              />
             );
           })
         )}

@@ -46,7 +46,8 @@ export function EditorShell({
   onSnapSelected,
   children,
 }: EditorShellProps) {
-  const { selectedFeatureIds, clearSelection } = useEditorStore();
+  const selectedCount = useEditorStore((state) => state.selectedFeatureIds.size);
+  const clearSelection = useEditorStore((state) => state.clearSelection);
 
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-black text-zinc-100 font-sans">
@@ -67,7 +68,7 @@ export function EditorShell({
           onLocateFeature={onLocateFeature}
         />
         <MainCanvas
-          selectedCount={selectedFeatureIds.size}
+          selectedCount={selectedCount}
           onCombineSelected={onCombineSelected}
           onJoinSelected={onJoinSelected}
           onSnapSelected={onSnapSelected}
@@ -77,7 +78,7 @@ export function EditorShell({
         </MainCanvas>
         <PropertiesPanel
           selectedDetail={selectedDetail}
-          selectedCount={selectedFeatureIds.size}
+          selectedCount={selectedCount}
           onRenameFeature={onRenameFeature}
           onCombineSelected={onCombineSelected}
           onJoinSelected={onJoinSelected}

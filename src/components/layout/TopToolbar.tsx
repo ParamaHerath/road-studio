@@ -36,13 +36,11 @@ export function TopToolbar({
   canUndo = false,
   canRedo = false,
 }: TopToolbarProps) {
-  const {
-    backgroundMode,
-    setBackgroundMode,
-    storageStatus,
-    features,
-    currentFileName,
-  } = useEditorStore();
+  const backgroundMode = useEditorStore((state) => state.backgroundMode);
+  const setBackgroundMode = useEditorStore((state) => state.setBackgroundMode);
+  const storageStatus = useEditorStore((state) => state.storageStatus);
+  const featureCount = useEditorStore((state) => state.features.length);
+  const currentFileName = useEditorStore((state) => state.currentFileName);
 
   return (
     <header className="flex h-12 w-full items-center justify-between border-b border-zinc-800 bg-black/95 px-3 backdrop-blur z-20 select-none">
@@ -112,19 +110,19 @@ export function TopToolbar({
           variant="outline"
           size="sm"
           onClick={onSaveClick}
-          disabled={features.length === 0}
+          disabled={featureCount === 0}
           className="gap-1.5 border-zinc-800 bg-zinc-900/80 text-zinc-200 hover:text-white hover:border-zinc-700"
           title={
-            features.length > 0
-              ? `Save / Overwrite "${currentFileName}" (Ctrl+S) — ${features.length} segments remaining`
+            featureCount > 0
+              ? `Save / Overwrite "${currentFileName}" (Ctrl+S) — ${featureCount} segments remaining`
               : "No road segments loaded"
           }
         >
           <Save className="h-3.5 w-3.5" />
           <span>Save KML</span>
-          {features.length > 0 && (
+          {featureCount > 0 && (
             <Badge variant="secondary" className="text-[10px] px-1 py-0 ml-0.5 bg-zinc-800 text-zinc-300 font-mono">
-              {features.length}
+              {featureCount}
             </Badge>
           )}
         </Button>
