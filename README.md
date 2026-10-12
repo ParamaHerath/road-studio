@@ -1,36 +1,105 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Road Studio — KML Road Network Editor
 
-## Getting Started
+**Road Studio** is a desktop-first web application engineered for manually reviewing, selecting, combining, and editing road paths imported from KML files.
 
-First, run the development server:
+Its primary mission is facilitating the redesign of geographic road networks (such as Sri Lanka's A-class highway network) for fantasy and real-world road cartography. It gives cartographers and GIS practitioners full control over individual road segments, bypasses, roundabouts, junctions, branches, and disconnected sections without altering underlying geographic accuracy.
+
+---
+
+## 1. Features
+
+- **Accurate KML Ingestion & GeoJSON Conversion**: Imports single and multipart line features (`LineString`, `MultiLineString`) while strictly preserving coordinates, feature names, descriptions, and metadata.
+- **Interactive Leaflet GIS Canvas**: High-performance geographic canvas with high-contrast road styling, hover states, and endpoint markers.
+- **Tri-Mode Map Canvas**:
+  - **Standard Road Map**: OpenStreetMap tiles with complete attribution.
+  - **Minimal Grid Mode**: High-contrast, distraction-free coordinate canvas with subtle square-grid alignment without tile servers.
+  - **Configurable Satellite Imagery**: Privacy-respecting tile provider slot without hardcoded proprietary API keys.
+- **Precision Operations (Combine, Join, Snap)**:
+  - **Combine**: Groups disconnected or branch segments into a single named multipart road feature without drawing artificial connector geometry.
+  - **Join**: Inspects and connects candidate endpoints with gap distance calculated in metres, coordinate direction reversal, and ambiguity warnings.
+  - **Snap**: Explicit endpoint snapping within user-defined tolerances with visual preview and verification.
+- **Robust Snapshot & Command Undo/Redo**: Reversible geometry and metadata edits.
+- **Road Naming & Inspection**: Rename paths to standard highway designations (e.g., A1, A2, A3), inspect vertex counts, lengths, and sub-components.
+- **Google Earth Pro-Compliant KML Export**: Serializes clean KML with coordinate fidelity, multipart placemark preservation, and full round-trip integrity.
+- **Local Client-Side Persistence**: Browser-local IndexedDB storage for state preservation across reloads without transmitting geographic data to external servers.
+
+---
+
+## 2. Technology Stack
+
+- **Framework**: Next.js 16 (App Router, Turbopack, React 19)
+- **Language**: TypeScript (strict type checking)
+- **Styling**: Tailwind CSS 4 & Vanilla CSS tokens
+- **UI & Icons**: Accessible primitives & Lucide Icons
+- **Mapping Canvas**: Leaflet & React Leaflet
+- **GIS Geometry**: Turf.js (`@turf/turf`) & `@tmcw/togeojson`
+- **State Management**: Zustand
+- **Local Persistence**: IndexedDB via `idb`
+- **Testing**: Vitest, React Testing Library, and Playwright
+
+---
+
+## 3. Getting Started
+
+### Prerequisites
+
+- **Node.js**: v20 or later (v24 LTS recommended)
+- **npm**: v10 or later
+
+### Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Clone the repository
+git clone https://github.com/ParamaHerath/road-studio.git
+cd road-studio
+
+# Install dependencies
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 4. Development & Verification Commands
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Description |
+|---|---|
+| `npm run dev` | Launch the development server on `http://localhost:3000` |
+| `npm run build` | Build the optimized production bundle |
+| `npm run start` | Run the production build locally |
+| `npm run lint` | Run ESLint across the source code |
+| `npm run typecheck` | Run TypeScript type checks (`tsc --noEmit`) |
+| `npm run test` | Run Vitest unit and component test suite |
+| `npm run test:watch` | Run Vitest in interactive watch mode |
+| `npm run test:e2e` | Run Playwright end-to-end test suite |
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 5. Operations Guide
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Combine vs Join vs Snap
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Combine**: Select two or more features and merge them under one road name. Coordinate lists are preserved as separate line pieces in a `MultiLineString`. Disconnected segments are never artificially bridged.
+- **Join**: Connects compatible endpoints into a single continuous `LineString`. Reverses point sequence when heading opposite directions, reports the gap distance in metres, and requires confirmation.
+- **Snap**: Adjusts endpoints within a tight tolerance (e.g. 5–25 metres) to eliminate floating gaps while warning of unintended intersections.
+- **Undo / Redo**: `Ctrl+Z` / `Ctrl+Y` or toolbar buttons restore previous geometry, selection, and naming state.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 6. KML Compatibility & Limitations
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Supported Features**: `LineString`, `MultiLineString`, named Placemarks, `<ExtendedData>`, standard coordinates (`longitude,latitude,altitude`).
+- **Initial Limitations**: Network links (`<NetworkLink>`), ground overlays (`<GroundOverlay>`), 3D polygon extrusions, and Google Earth-specific flyover camera tours are safely reported and bypassed to preserve line network data integrity.
+
+---
+
+## 7. Data Privacy & Map Attribution
+
+- **100% Client-Side**: All KML parsing, geometry calculations, and project sessions are processed purely in your browser. No geometry or metadata is sent to any remote server.
+- **Map Attribution**: OpenStreetMap standard tiles are used under the Open Database License (ODbL) with credit to `© OpenStreetMap contributors`.
+
+---
+
+## 8. Current Development Status
+
+- **Milestone 1 — Project Foundation**: ✅ Completed (Next.js 16, React 19, Tailwind CSS 4, UI shell, Vitest, Playwright, Zustand store).
+- **Milestone 2 — KML Import & Data Model**: Next in sequence.
