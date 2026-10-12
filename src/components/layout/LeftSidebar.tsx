@@ -9,6 +9,8 @@ import {
   EyeOff,
   Layers,
   MapPin,
+  PanelLeftClose,
+  PanelLeft,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -37,6 +39,7 @@ export function LeftSidebar({
 }: LeftSidebarProps) {
   const {
     sidebarOpen,
+    toggleSidebar,
     searchQuery,
     setSearchQuery,
     selectedFeatureIds,
@@ -65,13 +68,43 @@ export function LeftSidebar({
     }
   };
 
-  if (!sidebarOpen) return null;
+  if (!sidebarOpen) {
+    return (
+      <div className="absolute left-3 top-3 z-30">
+        <Button
+          variant="outline"
+          size="icon-sm"
+          onClick={toggleSidebar}
+          className="h-8 w-8 rounded-md border-slate-800 bg-slate-900/90 text-slate-300 hover:text-white shadow-md backdrop-blur"
+          title="Expand sidebar"
+          aria-label="Toggle sidebar"
+        >
+          <PanelLeft className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <aside
       className="flex w-80 flex-col border-r border-slate-800 bg-slate-900/90 text-slate-100 backdrop-blur z-10 shrink-0 h-[calc(100vh-3rem)]"
       data-testid="left-sidebar"
     >
+      {/* Top panel bar with Collapse toggle */}
+      <div className="flex items-center justify-between px-3 py-2 border-b border-slate-800/70 bg-slate-950/40">
+        <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Road Network</span>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={toggleSidebar}
+          className="h-6 w-6 text-slate-400 hover:text-slate-100"
+          title="Collapse sidebar"
+          aria-label="Toggle sidebar"
+        >
+          <PanelLeftClose className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+
       {/* Sidebar Header & Search */}
       <div className="flex flex-col gap-2 p-3 border-b border-slate-800">
         <div className="flex items-center justify-between">

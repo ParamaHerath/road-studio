@@ -10,10 +10,6 @@ import {
   Redo2,
   Layers,
   Download,
-  PanelLeftClose,
-  PanelLeft,
-  PanelRightClose,
-  PanelRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,10 +37,6 @@ export function TopToolbar({
   canRedo = false,
 }: TopToolbarProps) {
   const {
-    sidebarOpen,
-    toggleSidebar,
-    propertiesPanelOpen,
-    togglePropertiesPanel,
     backgroundMode,
     setBackgroundMode,
     storageStatus,
@@ -56,15 +48,6 @@ export function TopToolbar({
     <header className="flex h-12 w-full items-center justify-between border-b border-slate-800 bg-slate-900/95 px-3 backdrop-blur z-20 select-none">
       {/* Brand & Left toggles */}
       <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={toggleSidebar}
-          title={sidebarOpen ? "Hide feature sidebar" : "Show feature sidebar"}
-          aria-label="Toggle sidebar"
-        >
-          {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
-        </Button>
 
         <div className="flex items-center gap-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-sky-400 to-blue-600 text-slate-950 shadow-sm">
@@ -205,16 +188,6 @@ export function TopToolbar({
         >
           <Download className="h-3.5 w-3.5" />
           <span>Export KML</span>
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={togglePropertiesPanel}
-          title={propertiesPanelOpen ? "Hide properties panel" : "Show properties panel"}
-          aria-label="Toggle properties panel"
-        >
-          {propertiesPanelOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRight className="h-4 w-4" />}
         </Button>
       </div>
     </header>
