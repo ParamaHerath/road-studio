@@ -134,4 +134,71 @@ describe("editorStore", () => {
     expect(useEditorStore.getState().features).toHaveLength(0);
     expect(useEditorStore.getState().selectedFeatureIds.size).toBe(0);
   });
+
+  it("should combine selected features and allow undo / redo", () => {
+    const f1: RoadFeature = {
+      id: "part-1",
+      name: "Road Part 1",
+      geometry: { type: "LineString", coordinates: [[79.86, 6.92], [79.88, 6.94]] },
+      visible: true,
+      properties: {},
+      metadata: { componentCount: 1, coordinateCount: 2, lengthMeters: 3000, bbox: [79.86, 6.92, 79.88, 6.94] },
+    };
+    const f2: RoadFeature = {
+      id: "part-2",
+      name: "Road Part 2",
+      geometry: { type: "LineString", coordinates: [[79.88, 6.94], [79.92, 6.96]] },
+      visible: true,
+      properties: {},
+      metadata: { componentCount: 1, coordinateCount: 2, lengthMeters: 4000, bbox: [79.88, 6.94, 79.92, 6.96] },
+    };
+
+    const { setFeatures, setSelectedFeatureIds, combineSelectedFeatures, undo, redo } =
+      useEditorStore.getState();
+
+    setFeatures([f1, f2]);
+    setSelectedFeatureIds(new Set(["part-1", "part-2"]));
+
+    const combined = combineSelectedFeatures("A1 Combined");
+    expect(combined).not.toBeNull();
+    expect(useEditorStore.getState().features).toHaveLength(1);
+    expect(useEditorStore.getState().features[0].name).toBe("A1 Combined");
+    expect(useEditorStore.getState().features[0].geometry.type).toBe("MultiLineString");
+    expect(useEditorStore.getState().selectedFeatureIds.has(combined!.id)).toBe(true);
+
+    // Undo combination
+    undo();
+    expect(useEditorStore.getState().features).toHaveLength(2);
+    expect(useEditorStore.getState().features.map((f) => f.id)).toEqual(["part-1", "part-2"]);
+    expect(useEditorStore.getState().selectedFeatureIds.has("part-1")).toBe(true);
+    expect(useEditorStore.getState().selectedFeatureIds.has("part-2")).toBe(true);
+
+    // Redo combination
+    redo();
+    expect(useEditorStore.getState().features).toHaveLength(1);
+    expect(useEditorStore.getState().features[0].name).toBe("A1 Combined");
+  });
+
+  it("should undo and redo feature rename", () => {
+    const f: RoadFeature = {
+      id: "road-a",
+      name: "Original Name",
+      geometry: { type: "LineString", coordinates: [] },
+      visible: true,
+      properties: {},
+      metadata: { componentCount: 0, coordinateCount: 0, lengthMeters: 0, bbox: [0, 0, 0, 0] },
+    };
+
+    const { setFeatures, renameFeature, undo, redo } = useEditorStore.getState();
+    setFeatures([f]);
+
+    renameFeature("road-a", "New Name");
+    expect(useEditorStore.getState().features[0].name).toBe("New Name");
+
+    undo();
+    expect(useEditorStore.getState().features[0].name).toBe("Original Name");
+
+    redo();
+    expect(useEditorStore.getState().features[0].name).toBe("New Name");
+  });
 });

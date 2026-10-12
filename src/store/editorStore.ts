@@ -1,7 +1,13 @@
 import { create } from "zustand";
 import { RoadFeature, ImportSummary } from "@/types/road";
+import { combineFeatures } from "@/lib/geo/combine";
 
 export type TileBackgroundMode = "osm" | "satellite" | "minimal";
+
+export interface HistorySnapshot {
+  features: RoadFeature[];
+  selectedFeatureIds: Set<string>;
+}
 
 export interface EditorUiState {
   sidebarOpen: boolean;
@@ -11,11 +17,16 @@ export interface EditorUiState {
   selectedFeatureIds: Set<string>;
   activeTool: "select" | "combine" | "join" | "snap";
   importModalOpen: boolean;
+  combineModalOpen: boolean;
   focusedFeatureId: string | null;
 
   // Features data
   features: RoadFeature[];
   importSummary: ImportSummary | null;
+
+  // History for undo/redo
+  past: HistorySnapshot[];
+  future: HistorySnapshot[];
 
   // Actions
   toggleSidebar: () => void;
@@ -27,15 +38,19 @@ export interface EditorUiState {
   clearSelection: () => void;
   setActiveTool: (tool: "select" | "combine" | "join" | "snap") => void;
   setImportModalOpen: (open: boolean) => void;
+  setCombineModalOpen: (open: boolean) => void;
   setFocusedFeatureId: (id: string | null) => void;
   setFeatures: (features: RoadFeature[]) => void;
   setImportSummary: (summary: ImportSummary | null) => void;
   toggleFeatureVisibility: (id: string) => void;
   renameFeature: (id: string, newName: string) => void;
+  combineSelectedFeatures: (newName: string) => RoadFeature | null;
+  undo: () => void;
+  redo: () => void;
   resetProject: () => void;
 }
 
-export const useEditorStore = create<EditorUiState>((set) => ({
+export const useEditorStore = create<EditorUiState>((set, get) => ({
   sidebarOpen: true,
   propertiesPanelOpen: true,
   backgroundMode: "osm",
@@ -43,9 +58,12 @@ export const useEditorStore = create<EditorUiState>((set) => ({
   selectedFeatureIds: new Set(),
   activeTool: "select",
   importModalOpen: false,
+  combineModalOpen: false,
   focusedFeatureId: null,
   features: [],
   importSummary: null,
+  past: [],
+  future: [],
 
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
   togglePropertiesPanel: () => set((state) => ({ propertiesPanelOpen: !state.propertiesPanelOpen })),
@@ -65,18 +83,110 @@ export const useEditorStore = create<EditorUiState>((set) => ({
   clearSelection: () => set({ selectedFeatureIds: new Set() }),
   setActiveTool: (tool) => set({ activeTool: tool }),
   setImportModalOpen: (open) => set({ importModalOpen: open }),
+  setCombineModalOpen: (open) => set({ combineModalOpen: open }),
   setFocusedFeatureId: (id) => set({ focusedFeatureId: id }),
 
-  setFeatures: (features) => set({ features }),
+  setFeatures: (features) => {
+    const current = get();
+    // Only push to history if features currently exist
+    const past =
+      current.features.length > 0
+        ? [...current.past, { features: current.features, selectedFeatureIds: new Set(current.selectedFeatureIds) }]
+        : current.past;
+
+    set({
+      features,
+      past,
+      future: [],
+    });
+  },
+
   setImportSummary: (summary) => set({ importSummary: summary }),
+
   toggleFeatureVisibility: (id) =>
     set((state) => ({
       features: state.features.map((f) => (f.id === id ? { ...f, visible: !f.visible } : f)),
     })),
-  renameFeature: (id, newName) =>
-    set((state) => ({
-      features: state.features.map((f) => (f.id === id ? { ...f, name: newName } : f)),
-    })),
+
+  renameFeature: (id, newName) => {
+    const current = get();
+    const snapshot: HistorySnapshot = {
+      features: current.features.map((f) => ({ ...f })),
+      selectedFeatureIds: new Set(current.selectedFeatureIds),
+    };
+
+    set({
+      features: current.features.map((f) => (f.id === id ? { ...f, name: newName } : f)),
+      past: [...current.past, snapshot],
+      future: [],
+    });
+  },
+
+  combineSelectedFeatures: (newName: string) => {
+    const current = get();
+    const toCombine = current.features.filter((f) => current.selectedFeatureIds.has(f.id));
+    if (toCombine.length < 2) return null;
+
+    const snapshot: HistorySnapshot = {
+      features: current.features.map((f) => ({ ...f })),
+      selectedFeatureIds: new Set(current.selectedFeatureIds),
+    };
+
+    const combinedFeature = combineFeatures(toCombine, newName);
+    const toCombineIdSet = new Set(toCombine.map((f) => f.id));
+
+    // Filter out combined features and add the new combined feature in place
+    const remainingFeatures = current.features.filter((f) => !toCombineIdSet.has(f.id));
+    const nextFeatures = [...remainingFeatures, combinedFeature];
+
+    set({
+      features: nextFeatures,
+      selectedFeatureIds: new Set([combinedFeature.id]),
+      past: [...current.past, snapshot],
+      future: [],
+    });
+
+    return combinedFeature;
+  },
+
+  undo: () => {
+    const current = get();
+    if (current.past.length === 0) return;
+
+    const previous = current.past[current.past.length - 1];
+    const newPast = current.past.slice(0, current.past.length - 1);
+    const currentSnapshot: HistorySnapshot = {
+      features: current.features,
+      selectedFeatureIds: new Set(current.selectedFeatureIds),
+    };
+
+    set({
+      features: previous.features,
+      selectedFeatureIds: new Set(previous.selectedFeatureIds),
+      past: newPast,
+      future: [currentSnapshot, ...current.future],
+    });
+  },
+
+  redo: () => {
+    const current = get();
+    if (current.future.length === 0) return;
+
+    const next = current.future[0];
+    const newFuture = current.future.slice(1);
+    const currentSnapshot: HistorySnapshot = {
+      features: current.features,
+      selectedFeatureIds: new Set(current.selectedFeatureIds),
+    };
+
+    set({
+      features: next.features,
+      selectedFeatureIds: new Set(next.selectedFeatureIds),
+      past: [...current.past, currentSnapshot],
+      future: newFuture,
+    });
+  },
+
   resetProject: () =>
     set({
       features: [],
@@ -84,5 +194,8 @@ export const useEditorStore = create<EditorUiState>((set) => ({
       selectedFeatureIds: new Set(),
       searchQuery: "",
       focusedFeatureId: null,
+      past: [],
+      future: [],
+      combineModalOpen: false,
     }),
 }));

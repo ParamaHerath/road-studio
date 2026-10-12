@@ -104,4 +104,5 @@ npm install
 - **Milestone 1 — Project Foundation**: ✅ Completed (Next.js 16, React 19, Tailwind CSS 4, UI shell, Vitest, Playwright, Zustand store).
 - **Milestone 2 — KML Import & Data Model**: ✅ Completed (KML parser, domain types, summary cards, drag-and-drop modal, 13 parser & edge fixture tests).
 - **Milestone 3 — Map Canvas & Path List**: ✅ Completed (Leaflet interactive GIS map, high-contrast polyline styling, tooltips, list sync, search, locate on map, tri-mode background).
-- **Milestone 4 — Combine & Rename**: Next in sequence.
+- **Milestone 4 — Combine & Rename**: ✅ Completed (Multipart combination preserving disconnected pieces, road designation modal, duplicate warning, snapshot undo/redo & keyboard shortcuts).
+- **Milestone 5 — Endpoint Inspection & Join**: Next in sequence.
