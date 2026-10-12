@@ -70,20 +70,23 @@ export default function Home() {
     });
   }, [restoreSession]);
 
-  // Debounced auto-save to IndexedDB whenever features change
+  const selectedFeatureIdsRef = React.useRef(selectedFeatureIds);
+  selectedFeatureIdsRef.current = selectedFeatureIds;
+
+  // Debounced auto-save to IndexedDB whenever features change (not on every single selection click)
   React.useEffect(() => {
     if (isInitialLoadRef.current) return;
     if (features.length === 0) return;
 
     setStorageStatus("saving");
     const timer = setTimeout(() => {
-      saveProjectSession(features, selectedFeatureIds, importSummary).then(() => {
+      saveProjectSession(features, selectedFeatureIdsRef.current, importSummary).then(() => {
         setStorageStatus("saved");
       });
     }, 600);
 
     return () => clearTimeout(timer);
-  }, [features, selectedFeatureIds, importSummary, setStorageStatus]);
+  }, [features, importSummary, setStorageStatus]);
 
   // Keyboard shortcuts for Undo, Redo, and Save
   React.useEffect(() => {

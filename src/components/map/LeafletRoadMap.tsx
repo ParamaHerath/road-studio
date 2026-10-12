@@ -98,19 +98,24 @@ export function LeafletRoadMap({
     };
   }, []);
 
-  // Render Features on Map
+  const polylineMapRef = React.useRef<Map<string, L.Polyline>>(new Map());
+  const selectedFeatureIdsRef = React.useRef(selectedFeatureIds);
+  selectedFeatureIdsRef.current = selectedFeatureIds;
+
+  // Render Features on Map: only re-creates layers when features or onSelectFeature change
   React.useEffect(() => {
     const map = mapInstanceRef.current;
     const group = featureGroupRef.current;
     if (!map || !group) return;
 
     group.clearLayers();
+    polylineMapRef.current.clear();
 
     const visibleFeatures = features.filter((f) => f.visible);
     if (visibleFeatures.length === 0) return;
 
     visibleFeatures.forEach((feat) => {
-      const isSelected = selectedFeatureIds.has(feat.id);
+      const isSelected = selectedFeatureIdsRef.current.has(feat.id);
 
       // LatLng sequence for Leaflet: [lat, lon]
       const toLatLng = (c: [number, number] | [number, number, number]): [number, number] => [
@@ -133,7 +138,7 @@ export function LeafletRoadMap({
 
       // Hover and Click events
       polyline.on("mouseover", () => {
-        if (!selectedFeatureIds.has(feat.id)) {
+        if (!selectedFeatureIdsRef.current.has(feat.id)) {
           polyline.setStyle({
             color: "#ffffff",
             weight: 5,
@@ -143,7 +148,7 @@ export function LeafletRoadMap({
       });
 
       polyline.on("mouseout", () => {
-        if (!selectedFeatureIds.has(feat.id)) {
+        if (!selectedFeatureIdsRef.current.has(feat.id)) {
           polyline.setStyle({
             color: "#d4d4d8",
             weight: 3.5,
@@ -170,8 +175,21 @@ export function LeafletRoadMap({
       );
 
       group.addLayer(polyline);
+      polylineMapRef.current.set(feat.id, polyline);
     });
-  }, [features, selectedFeatureIds, onSelectFeature]);
+  }, [features, onSelectFeature]);
+
+  // Update styles in-place when selection changes without rebuilding all SVG polylines
+  React.useEffect(() => {
+    polylineMapRef.current.forEach((polyline, id) => {
+      const isSelected = selectedFeatureIds.has(id);
+      polyline.setStyle({
+        color: isSelected ? "#f59e0b" : "#d4d4d8",
+        weight: isSelected ? 5.5 : 3.5,
+        opacity: isSelected ? 1.0 : 0.85,
+      });
+    });
+  }, [selectedFeatureIds]);
 
   // Fit bounds when features first load or change
   React.useEffect(() => {
