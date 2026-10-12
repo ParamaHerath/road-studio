@@ -41,6 +41,9 @@ export default function Home() {
     snapSelectedFeatures,
     restoreSession,
     setStorageStatus,
+    saveCurrentKml,
+    setCurrentFileName,
+    setFileHandle,
     undo,
     redo,
     past,
@@ -82,7 +85,7 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, [features, selectedFeatureIds, importSummary, setStorageStatus]);
 
-  // Keyboard shortcuts for Undo and Redo
+  // Keyboard shortcuts for Undo, Redo, and Save
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't intercept if user is typing in an input
@@ -93,7 +96,10 @@ export default function Home() {
         return;
       }
 
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === "z") {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        saveCurrentKml();
+      } else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === "z") {
         e.preventDefault();
         undo();
       } else if (
@@ -107,7 +113,7 @@ export default function Home() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [undo, redo]);
+  }, [undo, redo, saveCurrentKml]);
 
   const sidebarFeatures: FeatureListItem[] = React.useMemo(() => {
     return features.map((f) => ({
@@ -146,6 +152,7 @@ export default function Home() {
         features={sidebarFeatures}
         selectedDetail={selectedDetail}
         onImportClick={() => setImportModalOpen(true)}
+        onSaveClick={saveCurrentKml}
         onExportClick={() => setExportModalOpen(true)}
         onNewProjectClick={() => {
           if (features.length > 0) {
@@ -180,6 +187,12 @@ export default function Home() {
         onImportSuccess={(result) => {
           setFeatures(result.features);
           setImportSummary(result.summary);
+          if (result.summary.filename) {
+            setCurrentFileName(result.summary.filename);
+          }
+          if (result.fileHandle) {
+            setFileHandle(result.fileHandle);
+          }
         }}
       />
 

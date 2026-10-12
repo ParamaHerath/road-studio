@@ -11,6 +11,7 @@ interface EditorShellProps {
   features?: FeatureListItem[];
   selectedDetail?: SelectedFeatureDetail | null;
   onImportClick?: () => void;
+  onSaveClick?: () => void;
   onExportClick?: () => void;
   onNewProjectClick?: () => void;
   onUndoClick?: () => void;
@@ -30,6 +31,7 @@ export function EditorShell({
   features = [],
   selectedDetail = null,
   onImportClick,
+  onSaveClick,
   onExportClick,
   onNewProjectClick,
   onUndoClick,
@@ -50,6 +52,7 @@ export function EditorShell({
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-slate-950 text-slate-100 font-sans">
       <TopToolbar
         onImportClick={onImportClick}
+        onSaveClick={onSaveClick}
         onExportClick={onExportClick}
         onNewProjectClick={onNewProjectClick}
         onUndoClick={onUndoClick}
