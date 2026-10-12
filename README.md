@@ -76,12 +76,33 @@ npm install
 
 ## 5. Operations Guide
 
+### Importing KML Files
+1. Click **Import KML** in the top toolbar.
+2. Drag and drop your `.kml` or `.xml` file, browse from disk, or paste raw KML text into the paste area.
+3. Review the **Ingestion Summary** showing feature count, coordinates, total network length, and any bypassed non-linear elements.
+4. Click **Import Features** to load the paths onto the interactive GIS map and sidebar.
+
 ### Combine vs Join vs Snap
 
-- **Combine**: Select two or more features and merge them under one road name. Coordinate lists are preserved as separate line pieces in a `MultiLineString`. Disconnected segments are never artificially bridged.
-- **Join**: Connects compatible endpoints into a single continuous `LineString`. Reverses point sequence when heading opposite directions, reports the gap distance in metres, and requires confirmation.
-- **Snap**: Adjusts endpoints within a tight tolerance (e.g. 5–25 metres) to eliminate floating gaps while warning of unintended intersections.
-- **Undo / Redo**: `Ctrl+Z` / `Ctrl+Y` or toolbar buttons restore previous geometry, selection, and naming state.
+| Operation | Purpose | Geometry Output | When to Use |
+|---|---|---|---|
+| **Combine** | Groups separate road segments under a single highway designation (e.g. A1, A2) | `MultiLineString` (preserves disconnected branches) | Bypass roads, dual carriageways, roundabouts, or branches that share a designation but don't form a single line. |
+| **Join** | Connects compatible endpoints into a continuous line | `LineString` (single sequential coordinate array) | Endpoints meeting at a junction that should form one continuous highway. Reverses reversed vectors automatically. |
+| **Snap** | Adjusts endpoints within a tolerance to eliminate digitizing gaps | Updated endpoint coordinates (`LineString` or `MultiLineString`) | Closing minor gaps (e.g. 5–25m) between separately digitized roads while validating against unwanted deflection. |
+
+- **Undo / Redo**: Press `Ctrl+Z` (Undo) or `Ctrl+Y` / `Ctrl+Shift+Z` (Redo), or use the top toolbar buttons. Reverts geometry, naming, and selections.
+- **Renaming**: Select any feature in the left sidebar or properties panel, enter a new name, or choose from standard Sri Lankan highway presets (A1–A8).
+- **New Project**: Click **New Project** in the toolbar. If features exist, a confirmation modal protects against accidental data loss before resetting.
+
+### Exporting KML Files
+1. Click **Export KML** in the top toolbar.
+2. Select your export scope:
+   - **All Roads**: Exports the entire project network.
+   - **Selected Roads**: Exports only currently selected features.
+   - **Visible Roads**: Exports only features currently marked visible.
+3. Enter your desired filename (defaults to `road-network-export.kml`).
+4. Choose whether to include `<ExtendedData>` metrics (component count, length, coordinate count).
+5. Click **Download KML**. The exported file opens cleanly in Google Earth Pro, QGIS, and ArcGIS.
 
 ---
 
@@ -95,11 +116,20 @@ npm install
 ## 7. Data Privacy & Map Attribution
 
 - **100% Client-Side**: All KML parsing, geometry calculations, and project sessions are processed purely in your browser. No geometry or metadata is sent to any remote server.
+- **Local Persistence**: Sessions automatically save to IndexedDB (`road-studio-storage`). Refreshing the browser recovers your workspace without data loss.
 - **Map Attribution**: OpenStreetMap standard tiles are used under the Open Database License (ODbL) with credit to `© OpenStreetMap contributors`.
+- **Optional Satellite Provider**: Can be configured with custom tile templates without embedding proprietary API keys.
 
 ---
 
-## 8. Current Development Status
+## 8. Technical Architecture
+
+For in-depth technical documentation on coordinate precision, data structures, Turf.js integration, and geometry decision records, consult:
+- **[Architecture & Geometry Decisions](docs/ARCHITECTURE.md)**
+
+---
+
+## 9. Current Development Status
 
 - **Milestone 1 — Project Foundation**: ✅ Completed (Next.js 16, React 19, Tailwind CSS 4, UI shell, Vitest, Playwright, Zustand store).
 - **Milestone 2 — KML Import & Data Model**: ✅ Completed (KML parser, domain types, summary cards, drag-and-drop modal, 13 parser & edge fixture tests).
@@ -109,4 +139,5 @@ npm install
 - **Milestone 6 — Snap & Geometry Validation**: ✅ Completed (Configurable tolerance 1–100m, original vs proposed coordinate inspection, target modes, deflection and unintended intersection validation, applySnap).
 - **Milestone 7 — KML Export & Round-Trip Verification**: ✅ Completed (Export full project or selected/visible scope, LineString & MultiGeometry placemark preservation, Google Earth Pro compatibility, ExtendedData metrics, export-import round-trip validation).
 - **Milestone 8 — Persistence & Recovery**: ✅ Completed (IndexedDB client-side storage, debounced auto-save, reload session restoration, NewProjectModal destructive reset confirmation).
-- **Milestone 9 — Polish & Acceptance Testing**: Next in sequence.
+- **Milestone 9 — Polish & Acceptance Testing**: ✅ Completed (End-to-end workflow suite, accessibility & UX polish, comprehensive technical documentation, full verification passing).
+
