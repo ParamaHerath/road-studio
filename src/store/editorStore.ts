@@ -11,6 +11,7 @@ export interface EditorUiState {
   selectedFeatureIds: Set<string>;
   activeTool: "select" | "combine" | "join" | "snap";
   importModalOpen: boolean;
+  focusedFeatureId: string | null;
 
   // Features data
   features: RoadFeature[];
@@ -26,6 +27,7 @@ export interface EditorUiState {
   clearSelection: () => void;
   setActiveTool: (tool: "select" | "combine" | "join" | "snap") => void;
   setImportModalOpen: (open: boolean) => void;
+  setFocusedFeatureId: (id: string | null) => void;
   setFeatures: (features: RoadFeature[]) => void;
   setImportSummary: (summary: ImportSummary | null) => void;
   toggleFeatureVisibility: (id: string) => void;
@@ -41,6 +43,7 @@ export const useEditorStore = create<EditorUiState>((set) => ({
   selectedFeatureIds: new Set(),
   activeTool: "select",
   importModalOpen: false,
+  focusedFeatureId: null,
   features: [],
   importSummary: null,
 
@@ -62,6 +65,7 @@ export const useEditorStore = create<EditorUiState>((set) => ({
   clearSelection: () => set({ selectedFeatureIds: new Set() }),
   setActiveTool: (tool) => set({ activeTool: tool }),
   setImportModalOpen: (open) => set({ importModalOpen: open }),
+  setFocusedFeatureId: (id) => set({ focusedFeatureId: id }),
 
   setFeatures: (features) => set({ features }),
   setImportSummary: (summary) => set({ importSummary: summary }),
@@ -79,5 +83,6 @@ export const useEditorStore = create<EditorUiState>((set) => ({
       importSummary: null,
       selectedFeatureIds: new Set(),
       searchQuery: "",
+      focusedFeatureId: null,
     }),
 }));
