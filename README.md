@@ -106,4 +106,5 @@ npm install
 - **Milestone 3 — Map Canvas & Path List**: ✅ Completed (Leaflet interactive GIS map, high-contrast polyline styling, tooltips, list sync, search, locate on map, tri-mode background).
 - **Milestone 4 — Combine & Rename**: ✅ Completed (Multipart combination preserving disconnected pieces, road designation modal, duplicate warning, snapshot undo/redo & keyboard shortcuts).
 - **Milestone 5 — Endpoint Inspection & Join**: ✅ Completed (Candidate endpoint inspection, distance display in metres, direction reversal, ambiguous-connection warnings, continuous join).
-- **Milestone 6 — Snap & Geometry Validation**: Next in sequence.
+- **Milestone 6 — Snap & Geometry Validation**: ✅ Completed (Configurable tolerance 1–100m, original vs proposed coordinate inspection, target modes, deflection and unintended intersection validation, applySnap).
+- **Milestone 7 — KML Export & Round-Trip Verification**: Next in sequence.

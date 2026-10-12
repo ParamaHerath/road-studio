@@ -5,6 +5,7 @@ import { EditorShell } from "@/components/layout/EditorShell";
 import { ImportModal } from "@/components/import/ImportModal";
 import { CombineModal } from "@/components/combine/CombineModal";
 import { JoinModal } from "@/components/join/JoinModal";
+import { SnapModal } from "@/components/snap/SnapModal";
 import { MapCanvas } from "@/components/map/MapCanvas";
 import { useEditorStore } from "@/store/editorStore";
 import { FeatureListItem } from "@/components/layout/LeftSidebar";
@@ -21,12 +22,15 @@ export default function Home() {
     setCombineModalOpen,
     joinModalOpen,
     setJoinModalOpen,
+    snapModalOpen,
+    setSnapModalOpen,
     selectedFeatureIds,
     toggleSelectFeature,
     toggleFeatureVisibility,
     renameFeature,
     combineSelectedFeatures,
     joinSelectedFeatures,
+    snapSelectedFeatures,
     undo,
     redo,
     past,
@@ -107,6 +111,7 @@ export default function Home() {
         onLocateFeature={(id) => setFocusedFeatureId(id)}
         onCombineSelected={() => setCombineModalOpen(true)}
         onJoinSelected={() => setJoinModalOpen(true)}
+        onSnapSelected={() => setSnapModalOpen(true)}
         onUndoClick={undo}
         onRedoClick={redo}
         canUndo={past.length > 0}
@@ -147,6 +152,15 @@ export default function Home() {
         onClose={() => setJoinModalOpen(false)}
         onConfirmJoin={(candidate, name) => {
           joinSelectedFeatures(candidate, name);
+        }}
+      />
+
+      <SnapModal
+        isOpen={snapModalOpen}
+        selectedFeatures={selectedFeatures}
+        onClose={() => setSnapModalOpen(false)}
+        onConfirmSnap={(candidate, mode) => {
+          snapSelectedFeatures(candidate, mode);
         }}
       />
     </>
