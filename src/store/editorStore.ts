@@ -3,8 +3,10 @@ import { RoadFeature, ImportSummary } from "@/types/road";
 import { combineFeatures } from "@/lib/geo/combine";
 import { joinFeatures, JoinCandidate } from "@/lib/geo/join";
 import { applySnap, SnapCandidate, SnapMode } from "@/lib/geo/snap";
+import { clearProjectSession } from "@/lib/db/projectDb";
 
 export type TileBackgroundMode = "osm" | "satellite" | "minimal";
+export type StorageStatus = "idle" | "saving" | "saved" | "restored";
 
 export interface HistorySnapshot {
   features: RoadFeature[];
@@ -23,7 +25,9 @@ export interface EditorUiState {
   combineModalOpen: boolean;
   joinModalOpen: boolean;
   snapModalOpen: boolean;
+  newProjectModalOpen: boolean;
   focusedFeatureId: string | null;
+  storageStatus: StorageStatus;
 
   // Features data
   features: RoadFeature[];
@@ -47,7 +51,9 @@ export interface EditorUiState {
   setCombineModalOpen: (open: boolean) => void;
   setJoinModalOpen: (open: boolean) => void;
   setSnapModalOpen: (open: boolean) => void;
+  setNewProjectModalOpen: (open: boolean) => void;
   setFocusedFeatureId: (id: string | null) => void;
+  setStorageStatus: (status: StorageStatus) => void;
   setFeatures: (features: RoadFeature[]) => void;
   setImportSummary: (summary: ImportSummary | null) => void;
   toggleFeatureVisibility: (id: string) => void;
@@ -58,6 +64,11 @@ export interface EditorUiState {
     candidate: SnapCandidate,
     mode: SnapMode
   ) => { updatedFeatureA: RoadFeature; updatedFeatureB: RoadFeature } | null;
+  restoreSession: (
+    features: RoadFeature[],
+    selectedIds: string[],
+    summary: ImportSummary | null
+  ) => void;
   undo: () => void;
   redo: () => void;
   resetProject: () => void;
@@ -75,7 +86,9 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
   combineModalOpen: false,
   joinModalOpen: false,
   snapModalOpen: false,
+  newProjectModalOpen: false,
   focusedFeatureId: null,
+  storageStatus: "idle",
   features: [],
   importSummary: null,
   past: [],
@@ -103,7 +116,19 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
   setCombineModalOpen: (open) => set({ combineModalOpen: open }),
   setJoinModalOpen: (open) => set({ joinModalOpen: open }),
   setSnapModalOpen: (open) => set({ snapModalOpen: open }),
+  setNewProjectModalOpen: (open) => set({ newProjectModalOpen: open }),
   setFocusedFeatureId: (id) => set({ focusedFeatureId: id }),
+  setStorageStatus: (status) => set({ storageStatus: status }),
+
+  restoreSession: (features, selectedIds, summary) =>
+    set({
+      features,
+      selectedFeatureIds: new Set(selectedIds),
+      importSummary: summary,
+      past: [],
+      future: [],
+      storageStatus: "restored",
+    }),
 
   setFeatures: (features) => {
     const current = get();
@@ -260,7 +285,8 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
     });
   },
 
-  resetProject: () =>
+  resetProject: () => {
+    clearProjectSession();
     set({
       features: [],
       importSummary: null,
@@ -273,5 +299,8 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
       joinModalOpen: false,
       snapModalOpen: false,
       exportModalOpen: false,
-    }),
+      newProjectModalOpen: false,
+      storageStatus: "idle",
+    });
+  },
 }));

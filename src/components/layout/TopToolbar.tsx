@@ -44,6 +44,7 @@ export function TopToolbar({
     togglePropertiesPanel,
     backgroundMode,
     setBackgroundMode,
+    storageStatus,
   } = useEditorStore();
 
   return (
@@ -71,6 +72,24 @@ export function TopToolbar({
             <Badge variant="outline" className="hidden sm:inline-flex text-[10px] py-0 px-1.5 border-slate-700">
               KML Network Editor
             </Badge>
+            {storageStatus === "saved" && (
+              <span className="hidden lg:inline-flex items-center gap-1 text-[10px] text-emerald-400 font-medium font-mono">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                Saved locally
+              </span>
+            )}
+            {storageStatus === "saving" && (
+              <span className="hidden lg:inline-flex items-center gap-1 text-[10px] text-amber-400 font-medium font-mono">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                Saving...
+              </span>
+            )}
+            {storageStatus === "restored" && (
+              <span className="hidden lg:inline-flex items-center gap-1 text-[10px] text-sky-400 font-medium font-mono">
+                <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
+                Session restored
+              </span>
+            )}
           </div>
         </div>
       </div>
