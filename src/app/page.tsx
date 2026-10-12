@@ -3,6 +3,7 @@
 import * as React from "react";
 import { EditorShell } from "@/components/layout/EditorShell";
 import { ImportModal } from "@/components/import/ImportModal";
+import { CombineModal } from "@/components/combine/CombineModal";
 import { MapCanvas } from "@/components/map/MapCanvas";
 import { useEditorStore } from "@/store/editorStore";
 import { FeatureListItem } from "@/components/layout/LeftSidebar";
@@ -15,15 +16,49 @@ export default function Home() {
     setImportSummary,
     importModalOpen,
     setImportModalOpen,
+    combineModalOpen,
+    setCombineModalOpen,
     selectedFeatureIds,
     toggleSelectFeature,
     toggleFeatureVisibility,
     renameFeature,
+    combineSelectedFeatures,
+    undo,
+    redo,
+    past,
+    future,
     resetProject,
     backgroundMode,
     focusedFeatureId,
     setFocusedFeatureId,
   } = useEditorStore();
+
+  // Keyboard shortcuts for Undo and Redo
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't intercept if user is typing in an input
+      if (
+        document.activeElement?.tagName === "INPUT" ||
+        document.activeElement?.tagName === "TEXTAREA"
+      ) {
+        return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === "z") {
+        e.preventDefault();
+        undo();
+      } else if (
+        ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") ||
+        ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "z")
+      ) {
+        e.preventDefault();
+        redo();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [undo, redo]);
 
   const sidebarFeatures: FeatureListItem[] = React.useMemo(() => {
     return features.map((f) => ({
@@ -35,6 +70,10 @@ export default function Home() {
       visible: f.visible,
     }));
   }, [features]);
+
+  const selectedFeatures = React.useMemo(() => {
+    return features.filter((f) => selectedFeatureIds.has(f.id));
+  }, [features, selectedFeatureIds]);
 
   const selectedDetail: SelectedFeatureDetail | null = React.useMemo(() => {
     if (selectedFeatureIds.size !== 1) return null;
@@ -62,6 +101,11 @@ export default function Home() {
         onToggleVisibility={toggleFeatureVisibility}
         onRenameFeature={renameFeature}
         onLocateFeature={(id) => setFocusedFeatureId(id)}
+        onCombineSelected={() => setCombineModalOpen(true)}
+        onUndoClick={undo}
+        onRedoClick={redo}
+        canUndo={past.length > 0}
+        canRedo={future.length > 0}
       >
         <MapCanvas
           features={features}
@@ -78,6 +122,16 @@ export default function Home() {
         onImportSuccess={(result) => {
           setFeatures(result.features);
           setImportSummary(result.summary);
+        }}
+      />
+
+      <CombineModal
+        isOpen={combineModalOpen}
+        selectedFeatures={selectedFeatures}
+        allFeatures={features}
+        onClose={() => setCombineModalOpen(false)}
+        onConfirmCombine={(name) => {
+          combineSelectedFeatures(name);
         }}
       />
     </>
