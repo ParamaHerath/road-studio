@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Download, X, Layers, Check, Globe2, FileCode } from "lucide-react";
+import { Download, X, Globe2, FileCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";

@@ -19,6 +19,7 @@ export interface EditorUiState {
   selectedFeatureIds: Set<string>;
   activeTool: "select" | "combine" | "join" | "snap";
   importModalOpen: boolean;
+  exportModalOpen: boolean;
   combineModalOpen: boolean;
   joinModalOpen: boolean;
   snapModalOpen: boolean;
@@ -42,6 +43,7 @@ export interface EditorUiState {
   clearSelection: () => void;
   setActiveTool: (tool: "select" | "combine" | "join" | "snap") => void;
   setImportModalOpen: (open: boolean) => void;
+  setExportModalOpen: (open: boolean) => void;
   setCombineModalOpen: (open: boolean) => void;
   setJoinModalOpen: (open: boolean) => void;
   setSnapModalOpen: (open: boolean) => void;
@@ -69,6 +71,7 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
   selectedFeatureIds: new Set(),
   activeTool: "select",
   importModalOpen: false,
+  exportModalOpen: false,
   combineModalOpen: false,
   joinModalOpen: false,
   snapModalOpen: false,
@@ -96,6 +99,7 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
   clearSelection: () => set({ selectedFeatureIds: new Set() }),
   setActiveTool: (tool) => set({ activeTool: tool }),
   setImportModalOpen: (open) => set({ importModalOpen: open }),
+  setExportModalOpen: (open) => set({ exportModalOpen: open }),
   setCombineModalOpen: (open) => set({ combineModalOpen: open }),
   setJoinModalOpen: (open) => set({ joinModalOpen: open }),
   setSnapModalOpen: (open) => set({ snapModalOpen: open }),
@@ -268,5 +272,6 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
       combineModalOpen: false,
       joinModalOpen: false,
       snapModalOpen: false,
+      exportModalOpen: false,
     }),
 }));
