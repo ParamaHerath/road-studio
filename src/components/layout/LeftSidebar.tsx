@@ -9,6 +9,8 @@ import {
   EyeOff,
   Layers,
   MapPin,
+  PanelLeftClose,
+  PanelLeft,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -37,6 +39,7 @@ export function LeftSidebar({
 }: LeftSidebarProps) {
   const {
     sidebarOpen,
+    toggleSidebar,
     searchQuery,
     setSearchQuery,
     selectedFeatureIds,
@@ -65,18 +68,48 @@ export function LeftSidebar({
     }
   };
 
-  if (!sidebarOpen) return null;
+  if (!sidebarOpen) {
+    return (
+      <div className="absolute left-3 top-3 z-30">
+        <Button
+          variant="outline"
+          size="icon-sm"
+          onClick={toggleSidebar}
+          className="h-8 w-8 rounded-md border-zinc-800 bg-black/90 text-zinc-300 hover:text-white shadow-md backdrop-blur"
+          title="Expand sidebar"
+          aria-label="Toggle sidebar"
+        >
+          <PanelLeft className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <aside
-      className="flex w-80 flex-col border-r border-slate-800 bg-slate-900/90 text-slate-100 backdrop-blur z-10 shrink-0 h-[calc(100vh-3rem)]"
+      className="flex w-80 flex-col border-r border-zinc-800 bg-black/95 text-zinc-100 backdrop-blur z-10 shrink-0 h-[calc(100vh-3rem)]"
       data-testid="left-sidebar"
     >
+      {/* Top panel bar with Collapse toggle */}
+      <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-800/70 bg-zinc-950/40">
+        <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">Road Network</span>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={toggleSidebar}
+          className="h-6 w-6 text-zinc-400 hover:text-white"
+          title="Collapse sidebar"
+          aria-label="Toggle sidebar"
+        >
+          <PanelLeftClose className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+
       {/* Sidebar Header & Search */}
-      <div className="flex flex-col gap-2 p-3 border-b border-slate-800">
+      <div className="flex flex-col gap-2 p-3 border-b border-zinc-800">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 uppercase tracking-wider">
-            <Layers className="h-3.5 w-3.5 text-sky-400" />
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+            <Layers className="h-3.5 w-3.5 text-zinc-400" />
             <span>Road Segments</span>
             <Badge variant="secondary" className="ml-1 text-[10px]">
               {features.length}
@@ -91,26 +124,26 @@ export function LeftSidebar({
 
         {/* Search input */}
         <div className="relative">
-          <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-slate-500" />
+          <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-zinc-500" />
           <Input
             placeholder="Filter by name (e.g. A1, bypass)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8 text-xs bg-slate-950/60"
+            className="pl-8 text-xs bg-zinc-950/60"
           />
         </div>
 
         {/* Selection helper row */}
-        <div className="flex items-center justify-between text-xs text-slate-400 pt-1">
+        <div className="flex items-center justify-between text-xs text-zinc-400 pt-1">
           <button
             onClick={handleToggleSelectAll}
             disabled={filteredFeatures.length === 0}
-            className="flex items-center gap-1.5 hover:text-slate-200 disabled:opacity-40 transition-colors"
+            className="flex items-center gap-1.5 hover:text-zinc-200 disabled:opacity-40 transition-colors"
           >
             {allSelected ? (
-              <CheckSquare className="h-3.5 w-3.5 text-sky-400" />
+              <CheckSquare className="h-3.5 w-3.5 text-white" />
             ) : (
-              <Square className="h-3.5 w-3.5 text-slate-500" />
+              <Square className="h-3.5 w-3.5 text-zinc-500" />
             )}
             <span className="text-[11px] font-medium">
               {allSelected ? "Deselect All" : "Select All"}
@@ -120,7 +153,7 @@ export function LeftSidebar({
           {selectedFeatureIds.size > 0 && (
             <button
               onClick={clearSelection}
-              className="text-[11px] text-slate-400 hover:text-sky-300 transition-colors"
+              className="text-[11px] text-zinc-400 hover:text-white transition-colors"
             >
               Clear Selection
             </button>
@@ -129,17 +162,17 @@ export function LeftSidebar({
       </div>
 
       {/* Feature List */}
-      <div className="flex-1 overflow-y-auto divide-y divide-slate-800/60">
+      <div className="flex-1 overflow-y-auto divide-y divide-zinc-800/60">
         {features.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-8 text-center text-slate-400 h-64">
-            <Layers className="h-10 w-10 text-slate-700 mb-2 stroke-1" />
-            <p className="text-xs font-medium text-slate-300">No Road Segments</p>
-            <p className="text-[11px] text-slate-500 mt-1 max-w-[200px]">
+          <div className="flex flex-col items-center justify-center p-8 text-center text-zinc-400 h-64">
+            <Layers className="h-10 w-10 text-zinc-700 mb-2 stroke-1" />
+            <p className="text-xs font-medium text-zinc-300">No Road Segments</p>
+            <p className="text-[11px] text-zinc-500 mt-1 max-w-[200px]">
               Import a KML file to view and combine road segments.
             </p>
           </div>
         ) : filteredFeatures.length === 0 ? (
-          <div className="p-6 text-center text-xs text-slate-400">
+          <div className="p-6 text-center text-xs text-zinc-400">
             No segments match &ldquo;{searchQuery}&rdquo;
           </div>
         ) : (
@@ -151,8 +184,8 @@ export function LeftSidebar({
                 onClick={() => toggleSelectFeature(feature.id)}
                 className={`flex items-center justify-between px-3 py-2 text-xs cursor-pointer transition-colors ${
                   isSelected
-                    ? "bg-sky-500/15 border-l-2 border-sky-400 text-slate-100"
-                    : "hover:bg-slate-800/50 text-slate-300"
+                    ? "bg-zinc-800/80 border-l-2 border-white text-zinc-100"
+                    : "hover:bg-zinc-900/60 text-zinc-300"
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0 pr-2">
@@ -160,13 +193,13 @@ export function LeftSidebar({
                     type="checkbox"
                     checked={isSelected}
                     onChange={() => {}} // handled by row click
-                    className="h-3.5 w-3.5 rounded border-slate-700 bg-slate-900 text-sky-500 focus:ring-0 cursor-pointer"
+                    className="h-3.5 w-3.5 rounded border-zinc-700 bg-zinc-900 text-white accent-zinc-200 focus:ring-0 cursor-pointer"
                   />
                   <div className="truncate">
-                    <div className="font-medium text-slate-200 truncate">
+                    <div className="font-medium text-zinc-200 truncate">
                       {feature.name || "Unnamed Road"}
                     </div>
-                    <div className="flex items-center gap-2 text-[10px] text-slate-500">
+                    <div className="flex items-center gap-2 text-[10px] text-zinc-500">
                       <span>{feature.type}</span>
                       <span>•</span>
                       <span>{feature.componentCount} seg</span>
@@ -186,7 +219,7 @@ export function LeftSidebar({
                         onLocateFeature(feature.id);
                       }}
                       title="Focus on map"
-                      className="h-6 w-6 text-slate-400 hover:text-sky-300"
+                      className="h-6 w-6 text-zinc-400 hover:text-white"
                     >
                       <MapPin className="h-3 w-3" />
                     </Button>
@@ -200,12 +233,12 @@ export function LeftSidebar({
                         onToggleVisibility(feature.id);
                       }}
                       title={feature.visible ? "Hide feature" : "Show feature"}
-                      className="h-6 w-6 text-slate-400 hover:text-sky-300"
+                      className="h-6 w-6 text-zinc-400 hover:text-white"
                     >
                       {feature.visible ? (
-                        <Eye className="h-3 w-3 text-slate-300" />
+                        <Eye className="h-3 w-3 text-zinc-300" />
                       ) : (
-                        <EyeOff className="h-3 w-3 text-slate-600" />
+                        <EyeOff className="h-3 w-3 text-zinc-600" />
                       )}
                     </Button>
                   )}
@@ -218,15 +251,15 @@ export function LeftSidebar({
 
       {/* Selected Items Summary Footer */}
       {selectedFeatureIds.size > 0 && (
-        <div className="p-2.5 border-t border-slate-800 bg-slate-950/80 flex items-center justify-between text-xs">
-          <span className="text-slate-400 font-medium">
+        <div className="p-2.5 border-t border-zinc-800 bg-zinc-950/80 flex items-center justify-between text-xs">
+          <span className="text-zinc-400 font-medium">
             {selectedFeatureIds.size} selected
           </span>
           <Button
             size="sm"
             variant="ghost"
             onClick={clearSelection}
-            className="h-6 px-2 text-[11px] text-sky-400 hover:text-sky-300"
+            className="h-6 px-2 text-[11px] text-zinc-300 hover:text-white"
           >
             Clear
           </Button>

@@ -10,10 +10,6 @@ import {
   Redo2,
   Layers,
   Download,
-  PanelLeftClose,
-  PanelLeft,
-  PanelRightClose,
-  PanelRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,10 +37,6 @@ export function TopToolbar({
   canRedo = false,
 }: TopToolbarProps) {
   const {
-    sidebarOpen,
-    toggleSidebar,
-    propertiesPanelOpen,
-    togglePropertiesPanel,
     backgroundMode,
     setBackgroundMode,
     storageStatus,
@@ -53,28 +45,21 @@ export function TopToolbar({
   } = useEditorStore();
 
   return (
-    <header className="flex h-12 w-full items-center justify-between border-b border-slate-800 bg-slate-900/95 px-3 backdrop-blur z-20 select-none">
+    <header className="flex h-12 w-full items-center justify-between border-b border-zinc-800 bg-black/95 px-3 backdrop-blur z-20 select-none">
       {/* Brand & Left toggles */}
       <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={toggleSidebar}
-          title={sidebarOpen ? "Hide feature sidebar" : "Show feature sidebar"}
-          aria-label="Toggle sidebar"
-        >
-          {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
-        </Button>
 
         <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-sky-400 to-blue-600 text-slate-950 shadow-sm">
-            <Route className="h-4 w-4 stroke-[2.5]" />
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="font-bold tracking-tight text-sm text-slate-100">
+          <Route className="h-5 w-5 text-white stroke-[2.25]" />
+          <div className="flex items-center gap-2">
+            <span className="font-bold tracking-tight text-sm text-zinc-100">
               Road Studio
             </span>
-            <Badge variant="outline" className="hidden sm:inline-flex text-[10px] py-0 px-1.5 border-slate-700">
+            <span className="hidden sm:inline text-zinc-600 text-xs select-none">•</span>
+            <Badge
+              variant="outline"
+              className="hidden sm:inline-flex rounded-md text-[11px] px-2 py-0.5 border-zinc-800 text-zinc-400 font-medium"
+            >
               KML Network Editor
             </Badge>
             {storageStatus === "saved" && (
@@ -90,8 +75,8 @@ export function TopToolbar({
               </span>
             )}
             {storageStatus === "restored" && (
-              <span className="hidden lg:inline-flex items-center gap-1 text-[10px] text-sky-400 font-medium font-mono">
-                <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
+              <span className="hidden lg:inline-flex items-center gap-1 text-[10px] text-zinc-400 font-medium font-mono">
+                <span className="h-1.5 w-1.5 rounded-full bg-zinc-400" />
                 Session restored
               </span>
             )}
@@ -105,10 +90,10 @@ export function TopToolbar({
           variant="ghost"
           size="sm"
           onClick={onNewProjectClick}
-          className="gap-1.5 text-slate-300"
+          className="gap-1.5 text-zinc-300"
           title="Start fresh project"
         >
-          <FilePlus className="h-3.5 w-3.5 text-slate-400" />
+          <FilePlus className="h-3.5 w-3.5 text-zinc-400" />
           <span className="hidden md:inline">New Project</span>
         </Button>
 
@@ -116,7 +101,7 @@ export function TopToolbar({
           variant="outline"
           size="sm"
           onClick={onImportClick}
-          className="gap-1.5 border-slate-700 bg-slate-800/80 text-sky-400 hover:text-sky-300 hover:border-sky-500/50"
+          className="gap-1.5 border-zinc-800 bg-zinc-900/80 text-zinc-200 hover:text-white hover:border-zinc-700"
           title="Import KML file"
         >
           <FolderOpen className="h-3.5 w-3.5" />
@@ -128,7 +113,7 @@ export function TopToolbar({
           size="sm"
           onClick={onSaveClick}
           disabled={features.length === 0}
-          className="gap-1.5 border-slate-700 bg-slate-800/80 text-emerald-400 hover:text-emerald-300 hover:border-emerald-500/50"
+          className="gap-1.5 border-zinc-800 bg-zinc-900/80 text-zinc-200 hover:text-white hover:border-zinc-700"
           title={
             features.length > 0
               ? `Save / Overwrite "${currentFileName}" (Ctrl+S) — ${features.length} segments remaining`
@@ -138,13 +123,13 @@ export function TopToolbar({
           <Save className="h-3.5 w-3.5" />
           <span>Save KML</span>
           {features.length > 0 && (
-            <Badge variant="secondary" className="text-[10px] px-1 py-0 ml-0.5 bg-slate-800 text-emerald-300 font-mono">
+            <Badge variant="secondary" className="text-[10px] px-1 py-0 ml-0.5 bg-zinc-800 text-zinc-300 font-mono">
               {features.length}
             </Badge>
           )}
         </Button>
 
-        <div className="mx-1 h-4 w-[1px] bg-slate-800" />
+        <div className="mx-1 h-4 w-[1px] bg-zinc-800" />
 
         <Button
           variant="ghost"
@@ -167,11 +152,11 @@ export function TopToolbar({
           <Redo2 className="h-3.5 w-3.5" />
         </Button>
 
-        <div className="mx-1 h-4 w-[1px] bg-slate-800" />
+        <div className="mx-1 h-4 w-[1px] bg-zinc-800" />
 
         {/* Background Tile Selector */}
-        <div className="flex items-center rounded-md border border-slate-800 bg-slate-950/60 p-0.5 text-xs">
-          <Layers className="ml-1.5 mr-1 h-3.5 w-3.5 text-slate-400" />
+        <div className="flex items-center rounded-md border border-zinc-800 bg-zinc-950/60 p-0.5 text-xs">
+          <Layers className="ml-1.5 mr-1 h-3.5 w-3.5 text-zinc-400" />
           {(
             [
               { id: "osm", label: "Street" },
@@ -184,8 +169,8 @@ export function TopToolbar({
               onClick={() => setBackgroundMode(mode.id as TileBackgroundMode)}
               className={`rounded px-2 py-0.5 text-[11px] font-medium transition-colors ${
                 backgroundMode === mode.id
-                  ? "bg-slate-800 text-sky-400 shadow-sm"
-                  : "text-slate-400 hover:text-slate-200"
+                  ? "bg-zinc-800 text-white shadow-sm"
+                  : "text-zinc-400 hover:text-zinc-200"
               }`}
             >
               {mode.label}
@@ -205,16 +190,6 @@ export function TopToolbar({
         >
           <Download className="h-3.5 w-3.5" />
           <span>Export KML</span>
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={togglePropertiesPanel}
-          title={propertiesPanelOpen ? "Hide properties panel" : "Show properties panel"}
-          aria-label="Toggle properties panel"
-        >
-          {propertiesPanelOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRight className="h-4 w-4" />}
         </Button>
       </div>
     </header>

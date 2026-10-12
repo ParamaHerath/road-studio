@@ -74,15 +74,15 @@ export function CombineModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-150"
       data-testid="combine-modal"
     >
-      <div className="relative w-full max-w-lg rounded-xl border border-slate-800 bg-slate-900 shadow-2xl flex flex-col overflow-hidden">
+      <div className="relative w-full max-w-lg rounded-xl border border-zinc-800 bg-zinc-950 shadow-2xl flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 px-5 py-3.5 bg-slate-900/90">
+        <div className="flex items-center justify-between border-b border-zinc-800 px-5 py-3.5 bg-zinc-950/90">
           <div className="flex items-center gap-2">
-            <Layers className="h-5 w-5 text-sky-400" />
-            <h2 className="text-sm font-semibold text-slate-100">
+            <Layers className="h-5 w-5 text-white" />
+            <h2 className="text-sm font-semibold text-zinc-100">
               Combine Road Paths
             </h2>
           </div>
@@ -90,7 +90,7 @@ export function CombineModal({
             size="icon-sm"
             variant="ghost"
             onClick={handleCloseModal}
-            className="text-slate-400 hover:text-slate-200"
+            className="text-zinc-400 hover:text-white"
             aria-label="Close modal"
           >
             <X className="h-4 w-4" />
@@ -100,9 +100,9 @@ export function CombineModal({
         {/* Content */}
         <div className="p-5 flex flex-col gap-4 max-h-[75vh] overflow-y-auto">
           {/* Informational banner explaining safe combine semantics */}
-          <div className="rounded-lg border border-sky-500/20 bg-sky-500/10 p-3 text-xs text-sky-300">
-            <p className="font-medium text-sky-200">Safe Multipart Combination</p>
-            <p className="text-[11px] text-sky-300/90 mt-1 leading-relaxed">
+          <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3 text-xs text-zinc-300">
+            <p className="font-medium text-zinc-100">Safe Multipart Combination</p>
+            <p className="text-[11px] text-zinc-400 mt-1 leading-relaxed">
               Preserves all coordinates and sequences. Disconnected pieces remain separate in a
               Multipart KML geometry without drawing artificial connector lines.
             </p>
@@ -110,21 +110,21 @@ export function CombineModal({
 
           {/* Road Naming Section */}
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-semibold text-slate-300">
+            <label className="text-xs font-semibold text-zinc-300">
               New Highway Designation / Name:
             </label>
             <Input
               value={roadName}
               onChange={(e) => setUserRoadName(e.target.value)}
               placeholder="e.g. A1, A2, Colombo-Kandy Road"
-              className="bg-slate-950/70 text-sm font-semibold text-sky-300"
+              className="bg-zinc-900 text-sm font-semibold text-zinc-100 border-zinc-800"
               autoFocus
               data-testid="combine-name-input"
             />
 
             {/* Quick Designation Suggestions */}
             <div className="flex items-center gap-1.5 flex-wrap pt-1">
-              <span className="text-[10px] text-slate-500 font-medium">Quick chips:</span>
+              <span className="text-[10px] text-zinc-500 font-medium">Quick chips:</span>
               {suggestions.map((code) => (
                 <button
                   key={code}
@@ -132,8 +132,8 @@ export function CombineModal({
                   onClick={() => setUserRoadName(code)}
                   className={`px-2 py-0.5 rounded text-[11px] font-mono border transition-colors ${
                     roadName === code
-                      ? "bg-sky-500/20 text-sky-300 border-sky-500/40"
-                      : "bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200"
+                      ? "bg-white text-black border-white font-semibold"
+                      : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-white"
                   }`}
                 >
                   {code}
@@ -157,10 +157,10 @@ export function CombineModal({
           </div>
 
           {/* Selected Segments Overview */}
-          <Card className="border-slate-800 bg-slate-950/60">
+          <Card className="border-zinc-800 bg-black/60">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-xs text-slate-300">
+                <CardTitle className="text-xs text-zinc-300">
                   Segments Being Combined ({selectedFeatures.length})
                 </CardTitle>
                 <Badge variant="outline">
@@ -172,13 +172,13 @@ export function CombineModal({
               {selectedFeatures.map((feat) => (
                 <div
                   key={feat.id}
-                  className="flex items-center justify-between py-1 px-2 rounded bg-slate-900/60 border border-slate-800/80"
+                  className="flex items-center justify-between py-1 px-2 rounded bg-zinc-900/60 border border-zinc-800/80"
                 >
                   <div className="flex items-center gap-2 truncate">
-                    <Route className="h-3.5 w-3.5 text-sky-400 shrink-0" />
-                    <span className="font-medium text-slate-200 truncate">{feat.name}</span>
+                    <Route className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                    <span className="font-medium text-zinc-200 truncate">{feat.name}</span>
                   </div>
-                  <span className="text-[10px] text-slate-500 font-mono shrink-0">
+                  <span className="text-[10px] text-zinc-500 font-mono shrink-0">
                     {feat.metadata.coordinateCount} pts
                   </span>
                 </div>
@@ -188,7 +188,7 @@ export function CombineModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 border-t border-slate-800 bg-slate-900/90 px-5 py-3">
+        <div className="flex items-center justify-end gap-2 border-t border-zinc-800 bg-zinc-950/90 px-5 py-3">
           <Button variant="ghost" size="sm" onClick={handleCloseModal}>
             Cancel
           </Button>

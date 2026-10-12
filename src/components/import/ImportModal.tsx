@@ -132,21 +132,21 @@ export function ImportModal({ isOpen, onClose, onImportSuccess }: ImportModalPro
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-150"
       data-testid="import-modal"
     >
-      <div className="relative w-full max-w-xl rounded-xl border border-slate-800 bg-slate-900 shadow-2xl flex flex-col overflow-hidden">
+      <div className="relative w-full max-w-xl rounded-xl border border-zinc-800 bg-zinc-950 shadow-2xl flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 px-5 py-3.5 bg-slate-900/90">
+        <div className="flex items-center justify-between border-b border-zinc-800 px-5 py-3.5 bg-zinc-950/90">
           <div className="flex items-center gap-2">
-            <UploadCloud className="h-5 w-5 text-sky-400" />
-            <h2 className="text-sm font-semibold text-slate-100">Import KML Road Network</h2>
+            <UploadCloud className="h-5 w-5 text-white" />
+            <h2 className="text-sm font-semibold text-zinc-100">Import KML Road Network</h2>
           </div>
           <Button
             size="icon-sm"
             variant="ghost"
             onClick={handleCloseModal}
-            className="text-slate-400 hover:text-slate-200"
+            className="text-zinc-400 hover:text-white"
             aria-label="Close modal"
           >
             <X className="h-4 w-4" />
@@ -164,8 +164,8 @@ export function ImportModal({ isOpen, onClose, onImportSuccess }: ImportModalPro
               onClick={handleBrowseFiles}
               className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 text-center cursor-pointer transition-all ${
                 isDragging
-                  ? "border-sky-400 bg-sky-500/10 scale-[0.99]"
-                  : "border-slate-700 bg-slate-950/40 hover:border-slate-600 hover:bg-slate-950/60"
+                  ? "border-zinc-400 bg-zinc-900 scale-[0.99]"
+                  : "border-zinc-800 bg-black/40 hover:border-zinc-700 hover:bg-zinc-900/40"
               }`}
               data-testid="dropzone"
             >
@@ -177,17 +177,17 @@ export function ImportModal({ isOpen, onClose, onImportSuccess }: ImportModalPro
                 className="hidden"
                 data-testid="file-input"
               />
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sky-500/10 text-sky-400 mb-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-900 text-white mb-3 border border-zinc-800">
                 {loading ? (
-                  <Loader2 className="h-6 w-6 animate-spin text-sky-400" />
+                  <Loader2 className="h-6 w-6 animate-spin text-white" />
                 ) : (
                   <UploadCloud className="h-6 w-6 stroke-[1.75]" />
                 )}
               </div>
-              <p className="text-xs font-semibold text-slate-200">
+              <p className="text-xs font-semibold text-zinc-200">
                 {loading ? "Parsing KML road paths..." : "Click or drag & drop your KML file here"}
               </p>
-              <p className="text-[11px] text-slate-500 mt-1 max-w-sm">
+              <p className="text-[11px] text-zinc-500 mt-1 max-w-sm">
                 Supports standard `.kml` files containing LineString or MultiLineString road features. Untrusted scripts are stripped.
               </p>
             </div>
@@ -215,38 +215,38 @@ export function ImportModal({ isOpen, onClose, onImportSuccess }: ImportModalPro
                 <span>KML file parsed successfully</span>
               </div>
 
-              <Card className="border-slate-800 bg-slate-950/60">
+              <Card className="border-zinc-800 bg-black/60">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-1.5 text-slate-300 normal-case text-xs">
-                      <FileText className="h-3.5 w-3.5 text-sky-400" />
+                    <CardTitle className="flex items-center gap-1.5 text-zinc-300 normal-case text-xs">
+                      <FileText className="h-3.5 w-3.5 text-zinc-400" />
                       <span className="font-mono">{importResult.summary.filename}</span>
                     </CardTitle>
                     <Badge variant="success">Ready</Badge>
                   </div>
                 </CardHeader>
                 <CardContent className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="rounded border border-slate-800/80 bg-slate-900/50 p-2">
-                    <span className="text-[11px] text-slate-500 block">Road Features</span>
-                    <span className="font-mono text-base font-semibold text-slate-200">
+                  <div className="rounded border border-zinc-800/80 bg-zinc-900/50 p-2">
+                    <span className="text-[11px] text-zinc-500 block">Road Features</span>
+                    <span className="font-mono text-base font-semibold text-zinc-200">
                       {importResult.summary.featureCount}
                     </span>
                   </div>
-                  <div className="rounded border border-slate-800/80 bg-slate-900/50 p-2">
-                    <span className="text-[11px] text-slate-500 block">Line Segments</span>
-                    <span className="font-mono text-base font-semibold text-slate-200">
+                  <div className="rounded border border-zinc-800/80 bg-zinc-900/50 p-2">
+                    <span className="text-[11px] text-zinc-500 block">Line Segments</span>
+                    <span className="font-mono text-base font-semibold text-zinc-200">
                       {importResult.summary.lineComponentCount}
                     </span>
                   </div>
-                  <div className="rounded border border-slate-800/80 bg-slate-900/50 p-2">
-                    <span className="text-[11px] text-slate-500 block">Total Vertices</span>
-                    <span className="font-mono text-base font-semibold text-slate-200">
+                  <div className="rounded border border-zinc-800/80 bg-zinc-900/50 p-2">
+                    <span className="text-[11px] text-zinc-500 block">Total Vertices</span>
+                    <span className="font-mono text-base font-semibold text-zinc-200">
                       {importResult.summary.coordinateCount.toLocaleString()}
                     </span>
                   </div>
-                  <div className="rounded border border-slate-800/80 bg-slate-900/50 p-2">
-                    <span className="text-[11px] text-slate-500 block">Approx. Network Length</span>
-                    <span className="font-mono text-base font-semibold text-slate-200">
+                  <div className="rounded border border-zinc-800/80 bg-zinc-900/50 p-2">
+                    <span className="text-[11px] text-zinc-500 block">Approx. Network Length</span>
+                    <span className="font-mono text-base font-semibold text-zinc-200">
                       {(importResult.summary.totalLengthMeters / 1000).toFixed(1)} km
                     </span>
                   </div>
@@ -272,7 +272,7 @@ export function ImportModal({ isOpen, onClose, onImportSuccess }: ImportModalPro
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 border-t border-slate-800 bg-slate-900/90 px-5 py-3">
+        <div className="flex items-center justify-end gap-2 border-t border-zinc-800 bg-zinc-950/90 px-5 py-3">
           <Button variant="ghost" size="sm" onClick={handleCloseModal}>
             Cancel
           </Button>
@@ -294,7 +294,7 @@ export function ImportModal({ isOpen, onClose, onImportSuccess }: ImportModalPro
               size="sm"
               onClick={() => fileInputRef.current?.click()}
               disabled={loading}
-              className="gap-1.5 border-slate-700"
+              className="gap-1.5 border-zinc-800"
             >
               <FileText className="h-3.5 w-3.5" />
               <span>Browse File</span>
