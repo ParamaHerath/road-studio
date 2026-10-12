@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { useEditorStore } from "./editorStore";
+import { RoadFeature } from "@/types/road";
 
 describe("editorStore", () => {
   beforeEach(() => {
@@ -10,6 +11,9 @@ describe("editorStore", () => {
       searchQuery: "",
       selectedFeatureIds: new Set(),
       activeTool: "select",
+      importModalOpen: false,
+      features: [],
+      importSummary: null,
     });
   });
 
@@ -21,6 +25,8 @@ describe("editorStore", () => {
     expect(state.searchQuery).toBe("");
     expect(state.selectedFeatureIds.size).toBe(0);
     expect(state.activeTool).toBe("select");
+    expect(state.features).toHaveLength(0);
+    expect(state.importModalOpen).toBe(false);
   });
 
   it("should toggle sidebar open/closed", () => {
@@ -74,6 +80,58 @@ describe("editorStore", () => {
     expect(useEditorStore.getState().selectedFeatureIds.size).toBe(2);
 
     clearSelection();
+    expect(useEditorStore.getState().selectedFeatureIds.size).toBe(0);
+  });
+
+  it("should update and manage features list, rename and visibility", () => {
+    const mockFeature: RoadFeature = {
+      id: "road-1",
+      name: "A1 Colombo-Kandy",
+      geometry: {
+        type: "LineString",
+        coordinates: [
+          [79.86, 6.92],
+          [79.92, 6.96],
+        ],
+      },
+      visible: true,
+      properties: {},
+      metadata: {
+        componentCount: 1,
+        coordinateCount: 2,
+        lengthMeters: 5000,
+        bbox: [79.86, 6.92, 79.92, 6.96],
+      },
+    };
+
+    const { setFeatures, toggleFeatureVisibility, renameFeature } = useEditorStore.getState();
+    setFeatures([mockFeature]);
+    expect(useEditorStore.getState().features).toHaveLength(1);
+
+    toggleFeatureVisibility("road-1");
+    expect(useEditorStore.getState().features[0].visible).toBe(false);
+
+    renameFeature("road-1", "A1 Kandy Highway");
+    expect(useEditorStore.getState().features[0].name).toBe("A1 Kandy Highway");
+  });
+
+  it("should reset project cleanly", () => {
+    const { setFeatures, toggleSelectFeature, resetProject } = useEditorStore.getState();
+    setFeatures([
+      {
+        id: "r1",
+        name: "Test",
+        geometry: { type: "LineString", coordinates: [] },
+        visible: true,
+        properties: {},
+        metadata: { componentCount: 0, coordinateCount: 0, lengthMeters: 0, bbox: [0, 0, 0, 0] },
+      },
+    ]);
+    toggleSelectFeature("r1");
+    expect(useEditorStore.getState().features).toHaveLength(1);
+
+    resetProject();
+    expect(useEditorStore.getState().features).toHaveLength(0);
     expect(useEditorStore.getState().selectedFeatureIds.size).toBe(0);
   });
 });

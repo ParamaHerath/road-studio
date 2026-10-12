@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { RoadFeature, ImportSummary } from "@/types/road";
 
 export type TileBackgroundMode = "osm" | "satellite" | "minimal";
 
@@ -9,7 +10,12 @@ export interface EditorUiState {
   searchQuery: string;
   selectedFeatureIds: Set<string>;
   activeTool: "select" | "combine" | "join" | "snap";
-  
+  importModalOpen: boolean;
+
+  // Features data
+  features: RoadFeature[];
+  importSummary: ImportSummary | null;
+
   // Actions
   toggleSidebar: () => void;
   togglePropertiesPanel: () => void;
@@ -19,6 +25,12 @@ export interface EditorUiState {
   toggleSelectFeature: (id: string) => void;
   clearSelection: () => void;
   setActiveTool: (tool: "select" | "combine" | "join" | "snap") => void;
+  setImportModalOpen: (open: boolean) => void;
+  setFeatures: (features: RoadFeature[]) => void;
+  setImportSummary: (summary: ImportSummary | null) => void;
+  toggleFeatureVisibility: (id: string) => void;
+  renameFeature: (id: string, newName: string) => void;
+  resetProject: () => void;
 }
 
 export const useEditorStore = create<EditorUiState>((set) => ({
@@ -28,6 +40,9 @@ export const useEditorStore = create<EditorUiState>((set) => ({
   searchQuery: "",
   selectedFeatureIds: new Set(),
   activeTool: "select",
+  importModalOpen: false,
+  features: [],
+  importSummary: null,
 
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
   togglePropertiesPanel: () => set((state) => ({ propertiesPanelOpen: !state.propertiesPanelOpen })),
@@ -46,4 +61,23 @@ export const useEditorStore = create<EditorUiState>((set) => ({
     }),
   clearSelection: () => set({ selectedFeatureIds: new Set() }),
   setActiveTool: (tool) => set({ activeTool: tool }),
+  setImportModalOpen: (open) => set({ importModalOpen: open }),
+
+  setFeatures: (features) => set({ features }),
+  setImportSummary: (summary) => set({ importSummary: summary }),
+  toggleFeatureVisibility: (id) =>
+    set((state) => ({
+      features: state.features.map((f) => (f.id === id ? { ...f, visible: !f.visible } : f)),
+    })),
+  renameFeature: (id, newName) =>
+    set((state) => ({
+      features: state.features.map((f) => (f.id === id ? { ...f, name: newName } : f)),
+    })),
+  resetProject: () =>
+    set({
+      features: [],
+      importSummary: null,
+      selectedFeatureIds: new Set(),
+      searchQuery: "",
+    }),
 }));
