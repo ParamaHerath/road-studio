@@ -221,8 +221,8 @@ export default function Home() {
         selectedFeatures={selectedFeatures}
         allFeatures={features}
         onClose={() => setJoinModalOpen(false)}
-        onConfirmJoin={(candidate, name) => {
-          joinSelectedFeatures(candidate, name);
+        onConfirmJoin={(candidateOrName, name) => {
+          joinSelectedFeatures(candidateOrName, name);
         }}
       />
 

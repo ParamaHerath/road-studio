@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { RoadFeature, ImportSummary } from "@/types/road";
 import { combineFeatures } from "@/lib/geo/combine";
-import { joinFeatures, JoinCandidate } from "@/lib/geo/join";
+import { joinFeatures, bulkJoinFeatures, JoinCandidate } from "@/lib/geo/join";
 import { applySnap, SnapCandidate, SnapMode } from "@/lib/geo/snap";
 import { clearProjectSession, saveProjectSession } from "@/lib/db/projectDb";
 import { serializeRoadFeaturesToKml } from "@/lib/kml/serializer";
@@ -67,7 +67,10 @@ export interface EditorUiState {
   toggleFeatureVisibility: (id: string) => void;
   renameFeature: (id: string, newName: string) => void;
   combineSelectedFeatures: (newName: string) => RoadFeature | null;
-  joinSelectedFeatures: (candidate: JoinCandidate, newName: string) => RoadFeature | null;
+  joinSelectedFeatures: (
+    candidateOrName: JoinCandidate | string,
+    optionalName?: string
+  ) => RoadFeature | null;
   snapSelectedFeatures: (
     candidate: SnapCandidate,
     mode: SnapMode
@@ -250,19 +253,32 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
     return combinedFeature;
   },
 
-  joinSelectedFeatures: (candidate: JoinCandidate, newName: string) => {
+  joinSelectedFeatures: (
+    candidateOrName: JoinCandidate | string,
+    optionalName?: string
+  ) => {
     const current = get();
     const toJoin = current.features.filter((f) => current.selectedFeatureIds.has(f.id));
-    if (toJoin.length !== 2) return null;
+    if (toJoin.length < 2) return null;
 
     const snapshot: HistorySnapshot = {
       features: current.features.map((f) => ({ ...f })),
       selectedFeatureIds: new Set(current.selectedFeatureIds),
     };
 
-    const joinedFeature = joinFeatures(toJoin[0], toJoin[1], candidate, newName);
-    const toJoinIdSet = new Set(toJoin.map((f) => f.id));
+    let joinedFeature: RoadFeature;
+    const resolvedName =
+      typeof candidateOrName === "string"
+        ? candidateOrName
+        : optionalName || `${toJoin[0].name} (Joined)`;
 
+    if (typeof candidateOrName !== "string" && toJoin.length === 2) {
+      joinedFeature = joinFeatures(toJoin[0], toJoin[1], candidateOrName, resolvedName);
+    } else {
+      joinedFeature = bulkJoinFeatures(toJoin, resolvedName);
+    }
+
+    const toJoinIdSet = new Set(toJoin.map((f) => f.id));
     const remainingFeatures = current.features.filter((f) => !toJoinIdSet.has(f.id));
     const nextFeatures = [...remainingFeatures, joinedFeature];
     const nextSummary = current.importSummary
