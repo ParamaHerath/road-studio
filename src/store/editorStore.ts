@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { RoadFeature, ImportSummary } from "@/types/road";
 import { combineFeatures } from "@/lib/geo/combine";
+import { joinFeatures, JoinCandidate } from "@/lib/geo/join";
 
 export type TileBackgroundMode = "osm" | "satellite" | "minimal";
 
@@ -18,6 +19,7 @@ export interface EditorUiState {
   activeTool: "select" | "combine" | "join" | "snap";
   importModalOpen: boolean;
   combineModalOpen: boolean;
+  joinModalOpen: boolean;
   focusedFeatureId: string | null;
 
   // Features data
@@ -39,12 +41,14 @@ export interface EditorUiState {
   setActiveTool: (tool: "select" | "combine" | "join" | "snap") => void;
   setImportModalOpen: (open: boolean) => void;
   setCombineModalOpen: (open: boolean) => void;
+  setJoinModalOpen: (open: boolean) => void;
   setFocusedFeatureId: (id: string | null) => void;
   setFeatures: (features: RoadFeature[]) => void;
   setImportSummary: (summary: ImportSummary | null) => void;
   toggleFeatureVisibility: (id: string) => void;
   renameFeature: (id: string, newName: string) => void;
   combineSelectedFeatures: (newName: string) => RoadFeature | null;
+  joinSelectedFeatures: (candidate: JoinCandidate, newName: string) => RoadFeature | null;
   undo: () => void;
   redo: () => void;
   resetProject: () => void;
@@ -59,6 +63,7 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
   activeTool: "select",
   importModalOpen: false,
   combineModalOpen: false,
+  joinModalOpen: false,
   focusedFeatureId: null,
   features: [],
   importSummary: null,
@@ -84,11 +89,11 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
   setActiveTool: (tool) => set({ activeTool: tool }),
   setImportModalOpen: (open) => set({ importModalOpen: open }),
   setCombineModalOpen: (open) => set({ combineModalOpen: open }),
+  setJoinModalOpen: (open) => set({ joinModalOpen: open }),
   setFocusedFeatureId: (id) => set({ focusedFeatureId: id }),
 
   setFeatures: (features) => {
     const current = get();
-    // Only push to history if features currently exist
     const past =
       current.features.length > 0
         ? [...current.past, { features: current.features, selectedFeatureIds: new Set(current.selectedFeatureIds) }]
@@ -135,7 +140,6 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
     const combinedFeature = combineFeatures(toCombine, newName);
     const toCombineIdSet = new Set(toCombine.map((f) => f.id));
 
-    // Filter out combined features and add the new combined feature in place
     const remainingFeatures = current.features.filter((f) => !toCombineIdSet.has(f.id));
     const nextFeatures = [...remainingFeatures, combinedFeature];
 
@@ -147,6 +151,32 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
     });
 
     return combinedFeature;
+  },
+
+  joinSelectedFeatures: (candidate: JoinCandidate, newName: string) => {
+    const current = get();
+    const toJoin = current.features.filter((f) => current.selectedFeatureIds.has(f.id));
+    if (toJoin.length !== 2) return null;
+
+    const snapshot: HistorySnapshot = {
+      features: current.features.map((f) => ({ ...f })),
+      selectedFeatureIds: new Set(current.selectedFeatureIds),
+    };
+
+    const joinedFeature = joinFeatures(toJoin[0], toJoin[1], candidate, newName);
+    const toJoinIdSet = new Set(toJoin.map((f) => f.id));
+
+    const remainingFeatures = current.features.filter((f) => !toJoinIdSet.has(f.id));
+    const nextFeatures = [...remainingFeatures, joinedFeature];
+
+    set({
+      features: nextFeatures,
+      selectedFeatureIds: new Set([joinedFeature.id]),
+      past: [...current.past, snapshot],
+      future: [],
+    });
+
+    return joinedFeature;
   },
 
   undo: () => {
@@ -197,5 +227,6 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
       past: [],
       future: [],
       combineModalOpen: false,
+      joinModalOpen: false,
     }),
 }));
