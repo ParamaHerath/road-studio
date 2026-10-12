@@ -4,6 +4,7 @@ import * as React from "react";
 import { EditorShell } from "@/components/layout/EditorShell";
 import { ImportModal } from "@/components/import/ImportModal";
 import { CombineModal } from "@/components/combine/CombineModal";
+import { JoinModal } from "@/components/join/JoinModal";
 import { MapCanvas } from "@/components/map/MapCanvas";
 import { useEditorStore } from "@/store/editorStore";
 import { FeatureListItem } from "@/components/layout/LeftSidebar";
@@ -18,11 +19,14 @@ export default function Home() {
     setImportModalOpen,
     combineModalOpen,
     setCombineModalOpen,
+    joinModalOpen,
+    setJoinModalOpen,
     selectedFeatureIds,
     toggleSelectFeature,
     toggleFeatureVisibility,
     renameFeature,
     combineSelectedFeatures,
+    joinSelectedFeatures,
     undo,
     redo,
     past,
@@ -102,6 +106,7 @@ export default function Home() {
         onRenameFeature={renameFeature}
         onLocateFeature={(id) => setFocusedFeatureId(id)}
         onCombineSelected={() => setCombineModalOpen(true)}
+        onJoinSelected={() => setJoinModalOpen(true)}
         onUndoClick={undo}
         onRedoClick={redo}
         canUndo={past.length > 0}
@@ -132,6 +137,16 @@ export default function Home() {
         onClose={() => setCombineModalOpen(false)}
         onConfirmCombine={(name) => {
           combineSelectedFeatures(name);
+        }}
+      />
+
+      <JoinModal
+        isOpen={joinModalOpen}
+        selectedFeatures={selectedFeatures}
+        allFeatures={features}
+        onClose={() => setJoinModalOpen(false)}
+        onConfirmJoin={(candidate, name) => {
+          joinSelectedFeatures(candidate, name);
         }}
       />
     </>
