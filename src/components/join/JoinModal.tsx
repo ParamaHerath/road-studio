@@ -69,15 +69,15 @@ export function JoinModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-150"
       data-testid="join-modal"
     >
-      <div className="relative w-full max-w-lg rounded-xl border border-slate-800 bg-slate-900 shadow-2xl flex flex-col overflow-hidden">
+      <div className="relative w-full max-w-lg rounded-xl border border-zinc-800 bg-zinc-950 shadow-2xl flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 px-5 py-3.5 bg-slate-900/90">
+        <div className="flex items-center justify-between border-b border-zinc-800 px-5 py-3.5 bg-zinc-950/90">
           <div className="flex items-center gap-2">
-            <CornerDownRight className="h-5 w-5 text-emerald-400" />
-            <h2 className="text-sm font-semibold text-slate-100">
+            <CornerDownRight className="h-5 w-5 text-white" />
+            <h2 className="text-sm font-semibold text-zinc-100">
               Join Compatible Endpoints
             </h2>
           </div>
@@ -85,7 +85,7 @@ export function JoinModal({
             size="icon-sm"
             variant="ghost"
             onClick={handleCloseModal}
-            className="text-slate-400 hover:text-slate-200"
+            className="text-zinc-400 hover:text-white"
             aria-label="Close modal"
           >
             <X className="h-4 w-4" />
@@ -95,10 +95,10 @@ export function JoinModal({
         {/* Content */}
         <div className="p-5 flex flex-col gap-4 max-h-[75vh] overflow-y-auto">
           {candidates.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-6 text-center text-slate-400">
+            <div className="flex flex-col items-center justify-center p-6 text-center text-zinc-400">
               <AlertTriangle className="h-8 w-8 text-amber-400 mb-2" />
-              <p className="text-xs font-semibold text-slate-200">No Compatible Endpoints Found</p>
-              <p className="text-[11px] text-slate-500 mt-1 max-w-xs">
+              <p className="text-xs font-semibold text-zinc-200">No Compatible Endpoints Found</p>
+              <p className="text-[11px] text-zinc-500 mt-1 max-w-xs">
                 The endpoints of these two roads are further than 500 metres apart. Use &ldquo;Combine&rdquo; to group them safely as a multipart road.
               </p>
             </div>
@@ -106,7 +106,7 @@ export function JoinModal({
             <>
               {/* Candidate Selection */}
               <div className="flex flex-col gap-2">
-                <label className="text-xs font-semibold text-slate-300">
+                <label className="text-xs font-semibold text-zinc-300">
                   Select Connection Candidate:
                 </label>
                 <div className="space-y-2">
@@ -118,14 +118,14 @@ export function JoinModal({
                         onClick={() => setSelectedCandidateId(cand.id)}
                         className={`p-3 rounded-lg border text-xs cursor-pointer transition-all ${
                           isSelected
-                            ? "border-emerald-500/50 bg-emerald-950/20 shadow-sm"
-                            : "border-slate-800 bg-slate-950/40 hover:bg-slate-800/40"
+                            ? "border-zinc-500 bg-zinc-900 shadow-sm"
+                            : "border-zinc-800 bg-black/40 hover:bg-zinc-900/40"
                         }`}
                       >
                         <div className="flex items-center justify-between mb-1.5">
-                          <div className="flex items-center gap-1.5 font-medium text-slate-200">
+                          <div className="flex items-center gap-1.5 font-medium text-zinc-200">
                             <span>{cand.endpointA.position.toUpperCase()} of {selectedFeatures[0].name}</span>
-                            <ArrowRight className="h-3.5 w-3.5 text-slate-500" />
+                            <ArrowRight className="h-3.5 w-3.5 text-zinc-500" />
                             <span>{cand.endpointB.position.toUpperCase()} of {selectedFeatures[1].name}</span>
                           </div>
                           <Badge
@@ -140,7 +140,7 @@ export function JoinModal({
 
                         {/* Reversal notice */}
                         {(cand.needsReverseA || cand.needsReverseB) && (
-                          <div className="flex items-center gap-1.5 text-[11px] text-sky-400 pt-1">
+                          <div className="flex items-center gap-1.5 text-[11px] text-zinc-400 pt-1">
                             <RotateCcw className="h-3 w-3 shrink-0" />
                             <span>
                               {cand.needsReverseA && cand.needsReverseB
@@ -167,14 +167,14 @@ export function JoinModal({
 
               {/* Road Designation Input */}
               <div className="flex flex-col gap-2 pt-1">
-                <label className="text-xs font-semibold text-slate-300">
+                <label className="text-xs font-semibold text-zinc-300">
                   Joined Road Name:
                 </label>
                 <Input
                   value={roadName}
                   onChange={(e) => setUserRoadName(e.target.value)}
                   placeholder="e.g. A1 Highway"
-                  className="bg-slate-950/70 text-sm font-semibold text-emerald-300"
+                  className="bg-zinc-900 text-sm font-semibold text-zinc-100 border-zinc-800"
                   data-testid="join-name-input"
                 />
 
@@ -192,7 +192,7 @@ export function JoinModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 border-t border-slate-800 bg-slate-900/90 px-5 py-3">
+        <div className="flex items-center justify-end gap-2 border-t border-zinc-800 bg-zinc-950/90 px-5 py-3">
           <Button variant="ghost" size="sm" onClick={handleCloseModal}>
             Cancel
           </Button>
@@ -202,7 +202,7 @@ export function JoinModal({
             size="sm"
             onClick={handleConfirm}
             disabled={!activeCandidate || !roadName.trim()}
-            className="gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-semibold"
+            className="gap-1.5"
             data-testid="confirm-join-btn"
           >
             <Check className="h-3.5 w-3.5 stroke-[2.5]" />

@@ -8,7 +8,7 @@ export const MapCanvas = dynamic<LeafletRoadMapProps>(
   {
     ssr: false,
     loading: () => (
-      <div className="flex h-full w-full items-center justify-center bg-slate-950 text-slate-500">
+      <div className="flex h-full w-full items-center justify-center bg-black text-zinc-500">
         <span className="text-xs">Loading Map Canvas...</span>
       </div>
     ),

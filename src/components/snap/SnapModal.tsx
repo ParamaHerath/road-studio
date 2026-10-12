@@ -72,16 +72,16 @@ export function SnapModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-150"
       data-testid="snap-modal"
     >
-      <div className="relative w-full max-w-xl rounded-xl border border-slate-800 bg-slate-900 shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
+      <div className="relative w-full max-w-xl rounded-xl border border-zinc-800 bg-zinc-950 shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 px-5 py-3.5 bg-slate-900/90">
+        <div className="flex items-center justify-between border-b border-zinc-800 px-5 py-3.5 bg-zinc-950/90">
           <div className="flex items-center gap-2">
             <MapPin className="h-5 w-5 text-amber-400" />
             <div>
-              <h2 className="text-sm font-semibold text-slate-100">
+              <h2 className="text-sm font-semibold text-zinc-100">
                 Endpoint Snap & Geometry Validation
               </h2>
             </div>
@@ -90,7 +90,7 @@ export function SnapModal({
             size="icon-sm"
             variant="ghost"
             onClick={handleClose}
-            className="text-slate-400 hover:text-slate-200"
+            className="text-zinc-400 hover:text-white"
             aria-label="Close modal"
           >
             <X className="h-4 w-4" />
@@ -100,13 +100,13 @@ export function SnapModal({
         {/* Content */}
         <div className="p-5 flex flex-col gap-4 overflow-y-auto">
           {/* Tolerance Configuration */}
-          <div className="flex flex-col gap-2 rounded-lg border border-slate-800 bg-slate-950/60 p-3">
+          <div className="flex flex-col gap-2 rounded-lg border border-zinc-800 bg-black/60 p-3">
             <div className="flex items-center justify-between">
               <label
                 htmlFor="snap-tolerance-input"
-                className="text-xs font-semibold text-slate-300 flex items-center gap-1.5"
+                className="text-xs font-semibold text-zinc-300 flex items-center gap-1.5"
               >
-                <Sliders className="h-3.5 w-3.5 text-sky-400" />
+                <Sliders className="h-3.5 w-3.5 text-zinc-400" />
                 <span>Snap Tolerance (metres)</span>
               </label>
               <div className="flex items-center gap-1.5">
@@ -118,7 +118,7 @@ export function SnapModal({
                     className={`px-2 py-0.5 rounded text-[11px] font-mono transition-colors ${
                       toleranceMeters === preset
                         ? "bg-amber-500/20 text-amber-300 border border-amber-500/50 font-bold"
-                        : "bg-slate-800 text-slate-400 hover:bg-slate-700"
+                        : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white"
                     }`}
                   >
                     {preset}m
@@ -151,25 +151,25 @@ export function SnapModal({
                       setToleranceMeters(val);
                     }
                   }}
-                  className="w-16 h-7 text-xs font-mono text-center bg-slate-900 border-slate-700"
+                  className="w-16 h-7 text-xs font-mono text-center bg-zinc-900 border-zinc-700"
                 />
-                <span className="text-xs text-slate-400 font-mono">m</span>
+                <span className="text-xs text-zinc-400 font-mono">m</span>
               </div>
             </div>
           </div>
 
           {/* Candidate Endpoints */}
           {candidates.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-6 text-center text-slate-400">
+            <div className="flex flex-col items-center justify-center p-6 text-center text-zinc-400">
               <AlertTriangle className="h-8 w-8 text-amber-400 mb-2" />
-              <p className="text-xs font-semibold text-slate-200">No Nearby Endpoints Found</p>
-              <p className="text-[11px] text-slate-500 mt-1 max-w-xs">
+              <p className="text-xs font-semibold text-zinc-200">No Nearby Endpoints Found</p>
+              <p className="text-[11px] text-zinc-500 mt-1 max-w-xs">
                 The endpoints of &quot;{selectedFeatures[0].name}&quot; and &quot;{selectedFeatures[1].name}&quot; are further apart than the maximum search radius.
               </p>
             </div>
           ) : (
             <div className="flex flex-col gap-2">
-              <label className="text-xs font-semibold text-slate-300">
+              <label className="text-xs font-semibold text-zinc-300">
                 Endpoint Candidates ({candidates.length})
               </label>
               <div className="flex flex-col gap-2" role="radiogroup" aria-label="Snap candidate pairs">
@@ -184,7 +184,7 @@ export function SnapModal({
                       className={`flex flex-col gap-1.5 p-3 rounded-lg border cursor-pointer transition-all ${
                         isSelected
                           ? "border-amber-500/60 bg-amber-500/10 shadow-sm"
-                          : "border-slate-800 bg-slate-950/40 hover:border-slate-700"
+                          : "border-zinc-800 bg-black/40 hover:border-zinc-700"
                       }`}
                       role="radio"
                       aria-checked={isSelected}
@@ -192,11 +192,11 @@ export function SnapModal({
                     >
                       <div className="flex items-center justify-between text-xs">
                         <div className="flex items-center gap-2">
-                          <span className="font-semibold text-slate-200">
+                          <span className="font-semibold text-zinc-200">
                             {c.featureAName} ({c.posA})
                           </span>
-                          <ArrowRight className="h-3 w-3 text-slate-500" />
-                          <span className="font-semibold text-slate-200">
+                          <ArrowRight className="h-3 w-3 text-zinc-500" />
+                          <span className="font-semibold text-zinc-200">
                             {c.featureBName} ({c.posB})
                           </span>
                         </div>
@@ -212,7 +212,7 @@ export function SnapModal({
                             Gap: {c.gapDistanceMeters.toFixed(1)} m
                           </Badge>
                           {isSelected && (
-                            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-slate-950">
+                            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-black">
                               <Check className="h-2.5 w-2.5 stroke-[3]" />
                             </span>
                           )}
@@ -227,8 +227,8 @@ export function SnapModal({
 
           {/* Active Candidate Detailed Settings */}
           {activeCandidate && (
-            <div className="flex flex-col gap-3 rounded-lg border border-slate-800 bg-slate-950/40 p-3.5">
-              <label className="text-xs font-semibold text-slate-300">
+            <div className="flex flex-col gap-3 rounded-lg border border-zinc-800 bg-black/40 p-3.5">
+              <label className="text-xs font-semibold text-zinc-300">
                 Snap Target Direction
               </label>
 
@@ -238,12 +238,12 @@ export function SnapModal({
                   onClick={() => setSnapMode("b_to_a")}
                   className={`flex flex-col items-center justify-center p-2 rounded border text-center transition-all ${
                     snapMode === "b_to_a"
-                      ? "border-amber-500/60 bg-amber-500/10 text-amber-200 font-semibold"
-                      : "border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700"
+                      ? "border-zinc-500 bg-zinc-800 text-white font-semibold"
+                      : "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700"
                   }`}
                 >
                   <span className="text-[11px]">Move B to A</span>
-                  <span className="text-[9px] text-slate-500 mt-0.5">A fixed</span>
+                  <span className="text-[9px] text-zinc-500 mt-0.5">A fixed</span>
                 </button>
 
                 <button
@@ -251,12 +251,12 @@ export function SnapModal({
                   onClick={() => setSnapMode("a_to_b")}
                   className={`flex flex-col items-center justify-center p-2 rounded border text-center transition-all ${
                     snapMode === "a_to_b"
-                      ? "border-amber-500/60 bg-amber-500/10 text-amber-200 font-semibold"
-                      : "border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700"
+                      ? "border-zinc-500 bg-zinc-800 text-white font-semibold"
+                      : "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700"
                   }`}
                 >
                   <span className="text-[11px]">Move A to B</span>
-                  <span className="text-[9px] text-slate-500 mt-0.5">B fixed</span>
+                  <span className="text-[9px] text-zinc-500 mt-0.5">B fixed</span>
                 </button>
 
                 <button
@@ -264,32 +264,32 @@ export function SnapModal({
                   onClick={() => setSnapMode("midpoint")}
                   className={`flex flex-col items-center justify-center p-2 rounded border text-center transition-all ${
                     snapMode === "midpoint"
-                      ? "border-amber-500/60 bg-amber-500/10 text-amber-200 font-semibold"
-                      : "border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700"
+                      ? "border-zinc-500 bg-zinc-800 text-white font-semibold"
+                      : "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700"
                   }`}
                 >
                   <span className="text-[11px]">Snap to Midpoint</span>
-                  <span className="text-[9px] text-slate-500 mt-0.5">Both adjust</span>
+                  <span className="text-[9px] text-zinc-500 mt-0.5">Both adjust</span>
                 </button>
               </div>
 
               {/* Endpoint Coordinate Inspection */}
-              <div className="flex flex-col gap-1.5 text-[11px] font-mono text-slate-400 bg-slate-900/80 p-2.5 rounded border border-slate-800/80">
+              <div className="flex flex-col gap-1.5 text-[11px] font-mono text-zinc-400 bg-zinc-900/80 p-2.5 rounded border border-zinc-800/80">
                 <div className="flex justify-between">
-                  <span className="text-slate-500">{activeCandidate.featureAName} ({activeCandidate.posA}):</span>
+                  <span className="text-zinc-500">{activeCandidate.featureAName} ({activeCandidate.posA}):</span>
                   <span>
                     [{activeCandidate.coordA[0].toFixed(5)}, {activeCandidate.coordA[1].toFixed(5)}]
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">{activeCandidate.featureBName} ({activeCandidate.posB}):</span>
+                  <span className="text-zinc-500">{activeCandidate.featureBName} ({activeCandidate.posB}):</span>
                   <span>
                     [{activeCandidate.coordB[0].toFixed(5)}, {activeCandidate.coordB[1].toFixed(5)}]
                   </span>
                 </div>
                 {activeValidation?.snappedCoordA && (
-                  <div className="flex justify-between border-t border-slate-800 pt-1 text-amber-300">
-                    <span className="text-slate-400">Proposed Snapped Point:</span>
+                  <div className="flex justify-between border-t border-zinc-800 pt-1 text-zinc-200">
+                    <span className="text-zinc-400">Proposed Snapped Point:</span>
                     <span>
                       [{activeValidation.snappedCoordA[0].toFixed(5)}, {activeValidation.snappedCoordA[1].toFixed(5)}]
                     </span>
@@ -335,7 +335,7 @@ export function SnapModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 border-t border-slate-800 px-5 py-3 bg-slate-900/90">
+        <div className="flex items-center justify-end gap-2 border-t border-zinc-800 px-5 py-3 bg-zinc-950/90">
           <Button variant="ghost" size="sm" onClick={handleClose}>
             Cancel
           </Button>
@@ -344,7 +344,7 @@ export function SnapModal({
             size="sm"
             onClick={handleConfirm}
             disabled={!activeCandidate || !isValid}
-            className="gap-1.5 bg-amber-600 hover:bg-amber-500 text-slate-950 font-semibold"
+            className="gap-1.5"
           >
             <Check className="h-4 w-4 stroke-[2.5]" />
             <span>Apply Snap</span>

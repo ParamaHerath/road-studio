@@ -49,7 +49,7 @@ export function EditorShell({
   const { selectedFeatureIds, clearSelection } = useEditorStore();
 
   return (
-    <div className="flex h-screen w-screen flex-col overflow-hidden bg-slate-950 text-slate-100 font-sans">
+    <div className="flex h-screen w-screen flex-col overflow-hidden bg-black text-zinc-100 font-sans">
       <TopToolbar
         onImportClick={onImportClick}
         onSaveClick={onSaveClick}

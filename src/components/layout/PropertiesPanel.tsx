@@ -59,19 +59,19 @@ export function PropertiesPanel({
 
   return (
     <aside
-      className="flex w-72 flex-col border-l border-slate-800 bg-slate-900/90 text-slate-100 backdrop-blur z-10 shrink-0 h-[calc(100vh-3rem)] p-3 overflow-y-auto"
+      className="flex w-72 flex-col border-l border-zinc-800 bg-black/95 text-zinc-100 backdrop-blur z-10 shrink-0 h-[calc(100vh-3rem)] p-3 overflow-y-auto"
       data-testid="properties-panel"
     >
-      <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-        <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400">
-          <Info className="h-3.5 w-3.5 text-sky-400" />
+      <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
+        <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-zinc-400">
+          <Info className="h-3.5 w-3.5 text-zinc-400" />
           <span>Properties</span>
         </div>
         <Button
           variant="ghost"
           size="icon-sm"
           onClick={togglePropertiesPanel}
-          className="h-6 w-6 text-slate-400 hover:text-slate-200"
+          className="h-6 w-6 text-zinc-400 hover:text-white"
           aria-label="Close properties"
         >
           <X className="h-3.5 w-3.5" />
@@ -80,15 +80,15 @@ export function PropertiesPanel({
 
       <div className="mt-3 flex flex-col gap-3">
         {selectedCount > 1 ? (
-          <Card className="border-sky-500/30 bg-sky-950/20">
+          <Card className="border-zinc-700 bg-zinc-900/40">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sky-300">Multi-Selection</CardTitle>
+                <CardTitle className="text-white">Multi-Selection</CardTitle>
                 <Badge variant="default">{selectedCount} items</Badge>
               </div>
             </CardHeader>
             <CardContent className="space-y-3 text-xs">
-              <p className="text-slate-400 text-[11px]">
+              <p className="text-zinc-400 text-[11px]">
                 {selectedCount} segments selected. You can combine them into a single road or join their endpoints.
               </p>
               <div className="flex flex-col gap-1.5 pt-1">
@@ -108,7 +108,7 @@ export function PropertiesPanel({
                     size="sm"
                     variant="outline"
                     onClick={onJoinSelected}
-                    className="w-full text-xs justify-start border-slate-700"
+                    className="w-full text-xs justify-start border-zinc-800"
                   >
                     <CornerDownRight className="h-3.5 w-3.5 mr-1.5 text-emerald-400" />
                     Join Endpoints
@@ -119,7 +119,7 @@ export function PropertiesPanel({
                     size="sm"
                     variant="outline"
                     onClick={onSnapSelected}
-                    className="w-full text-xs justify-start border-slate-700"
+                    className="w-full text-xs justify-start border-zinc-800"
                   >
                     <MapPin className="h-3.5 w-3.5 mr-1.5 text-amber-400" />
                     Snap Endpoints
@@ -164,7 +164,7 @@ export function PropertiesPanel({
                   </div>
                 ) : (
                   <div className="flex items-center justify-between group">
-                    <span className="font-semibold text-slate-200 text-sm">
+                    <span className="font-semibold text-zinc-200 text-sm">
                       {selectedDetail.name || "Unnamed"}
                     </span>
                     {onRenameFeature && (
@@ -172,7 +172,7 @@ export function PropertiesPanel({
                         size="icon-sm"
                         variant="ghost"
                         onClick={handleStartEditing}
-                        className="h-6 w-6 text-slate-500 hover:text-sky-300"
+                        className="h-6 w-6 text-zinc-500 hover:text-white"
                         title="Rename road"
                       >
                         <Edit3 className="h-3 w-3" />
@@ -188,29 +188,29 @@ export function PropertiesPanel({
                 <CardTitle>Geometry Details</CardTitle>
               </CardHeader>
               <CardContent className="text-xs space-y-2">
-                <div className="flex justify-between py-1 border-b border-slate-800">
-                  <span className="text-slate-400">Type</span>
+                <div className="flex justify-between py-1 border-b border-zinc-800">
+                  <span className="text-zinc-400">Type</span>
                   <Badge variant="outline">{selectedDetail.type}</Badge>
                 </div>
-                <div className="flex justify-between py-1 border-b border-slate-800">
-                  <span className="text-slate-400">Sub-components</span>
-                  <span className="font-mono text-slate-300">{selectedDetail.componentCount}</span>
+                <div className="flex justify-between py-1 border-b border-zinc-800">
+                  <span className="text-zinc-400">Sub-components</span>
+                  <span className="font-mono text-zinc-300">{selectedDetail.componentCount}</span>
                 </div>
-                <div className="flex justify-between py-1 border-b border-slate-800">
-                  <span className="text-slate-400">Coordinates</span>
-                  <span className="font-mono text-slate-300">{selectedDetail.coordinateCount}</span>
+                <div className="flex justify-between py-1 border-b border-zinc-800">
+                  <span className="text-zinc-400">Coordinates</span>
+                  <span className="font-mono text-zinc-300">{selectedDetail.coordinateCount}</span>
                 </div>
                 {selectedDetail.lengthKm !== undefined && (
-                  <div className="flex justify-between py-1 border-b border-slate-800">
-                    <span className="text-slate-400">Approx. Length</span>
-                    <span className="font-mono text-slate-300">
+                  <div className="flex justify-between py-1 border-b border-zinc-800">
+                    <span className="text-zinc-400">Approx. Length</span>
+                    <span className="font-mono text-zinc-300">
                       {selectedDetail.lengthKm.toFixed(2)} km
                     </span>
                   </div>
                 )}
                 <div className="flex justify-between py-1">
-                  <span className="text-slate-400">Internal ID</span>
-                  <span className="font-mono text-[10px] text-slate-500 truncate max-w-[120px]" title={selectedDetail.id}>
+                  <span className="text-zinc-400">Internal ID</span>
+                  <span className="font-mono text-[10px] text-zinc-500 truncate max-w-[120px]" title={selectedDetail.id}>
                     {selectedDetail.id}
                   </span>
                 </div>
@@ -222,17 +222,17 @@ export function PropertiesPanel({
                 <CardHeader className="pb-1">
                   <CardTitle>Metadata Description</CardTitle>
                 </CardHeader>
-                <CardContent className="text-[11px] text-slate-400 break-words whitespace-pre-wrap max-h-40 overflow-y-auto">
+                <CardContent className="text-[11px] text-zinc-400 break-words whitespace-pre-wrap max-h-40 overflow-y-auto">
                   {selectedDetail.description}
                 </CardContent>
               </Card>
             )}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center p-8 text-center text-slate-500 h-64">
-            <Info className="h-8 w-8 text-slate-700 mb-2 stroke-1" />
-            <p className="text-xs font-medium text-slate-400">No Feature Selected</p>
-            <p className="text-[11px] text-slate-600 mt-1">
+          <div className="flex flex-col items-center justify-center p-8 text-center text-zinc-500 h-64">
+            <Info className="h-8 w-8 text-zinc-700 mb-2 stroke-1" />
+            <p className="text-xs font-medium text-zinc-400">No Feature Selected</p>
+            <p className="text-[11px] text-zinc-600 mt-1">
               Click a road on the map or select an item from the sidebar to inspect its properties.
             </p>
           </div>

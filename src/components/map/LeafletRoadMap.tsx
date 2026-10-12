@@ -124,7 +124,7 @@ export function LeafletRoadMap({
           : feat.geometry.coordinates.map((line) => line.map(toLatLng));
 
       const polyline = L.polyline(latLngs, {
-        color: isSelected ? "#f59e0b" : "#38bdf8",
+        color: isSelected ? "#f59e0b" : "#d4d4d8",
         weight: isSelected ? 5.5 : 3.5,
         opacity: isSelected ? 1.0 : 0.85,
         lineCap: "round",
@@ -135,7 +135,7 @@ export function LeafletRoadMap({
       polyline.on("mouseover", () => {
         if (!selectedFeatureIds.has(feat.id)) {
           polyline.setStyle({
-            color: "#7dd3fc",
+            color: "#ffffff",
             weight: 5,
             opacity: 1,
           });
@@ -145,7 +145,7 @@ export function LeafletRoadMap({
       polyline.on("mouseout", () => {
         if (!selectedFeatureIds.has(feat.id)) {
           polyline.setStyle({
-            color: "#38bdf8",
+            color: "#d4d4d8",
             weight: 3.5,
             opacity: 0.85,
           });
