@@ -51,11 +51,15 @@ export function TopToolbar({
 
         <div className="flex items-center gap-2">
           <Route className="h-5 w-5 text-white stroke-[2.25]" />
-          <div className="flex items-baseline gap-2">
+          <div className="flex items-center gap-2">
             <span className="font-bold tracking-tight text-sm text-zinc-100">
               Road Studio
             </span>
-            <Badge variant="outline" className="hidden sm:inline-flex text-[10px] py-0 px-1.5 border-zinc-800 text-zinc-400">
+            <span className="hidden sm:inline text-zinc-600 text-xs select-none">•</span>
+            <Badge
+              variant="outline"
+              className="hidden sm:inline-flex rounded-md text-[11px] px-2 py-0.5 border-zinc-800 text-zinc-400 font-medium"
+            >
               KML Network Editor
             </Badge>
             {storageStatus === "saved" && (
