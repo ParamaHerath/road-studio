@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { RoadFeature, ImportSummary } from "@/types/road";
 import { combineFeatures } from "@/lib/geo/combine";
 import { joinFeatures, JoinCandidate } from "@/lib/geo/join";
+import { applySnap, SnapCandidate, SnapMode } from "@/lib/geo/snap";
 
 export type TileBackgroundMode = "osm" | "satellite" | "minimal";
 
@@ -20,6 +21,7 @@ export interface EditorUiState {
   importModalOpen: boolean;
   combineModalOpen: boolean;
   joinModalOpen: boolean;
+  snapModalOpen: boolean;
   focusedFeatureId: string | null;
 
   // Features data
@@ -42,6 +44,7 @@ export interface EditorUiState {
   setImportModalOpen: (open: boolean) => void;
   setCombineModalOpen: (open: boolean) => void;
   setJoinModalOpen: (open: boolean) => void;
+  setSnapModalOpen: (open: boolean) => void;
   setFocusedFeatureId: (id: string | null) => void;
   setFeatures: (features: RoadFeature[]) => void;
   setImportSummary: (summary: ImportSummary | null) => void;
@@ -49,6 +52,10 @@ export interface EditorUiState {
   renameFeature: (id: string, newName: string) => void;
   combineSelectedFeatures: (newName: string) => RoadFeature | null;
   joinSelectedFeatures: (candidate: JoinCandidate, newName: string) => RoadFeature | null;
+  snapSelectedFeatures: (
+    candidate: SnapCandidate,
+    mode: SnapMode
+  ) => { updatedFeatureA: RoadFeature; updatedFeatureB: RoadFeature } | null;
   undo: () => void;
   redo: () => void;
   resetProject: () => void;
@@ -64,6 +71,7 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
   importModalOpen: false,
   combineModalOpen: false,
   joinModalOpen: false,
+  snapModalOpen: false,
   focusedFeatureId: null,
   features: [],
   importSummary: null,
@@ -90,6 +98,7 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
   setImportModalOpen: (open) => set({ importModalOpen: open }),
   setCombineModalOpen: (open) => set({ combineModalOpen: open }),
   setJoinModalOpen: (open) => set({ joinModalOpen: open }),
+  setSnapModalOpen: (open) => set({ snapModalOpen: open }),
   setFocusedFeatureId: (id) => set({ focusedFeatureId: id }),
 
   setFeatures: (features) => {
@@ -179,6 +188,36 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
     return joinedFeature;
   },
 
+  snapSelectedFeatures: (candidate: SnapCandidate, mode: SnapMode) => {
+    const current = get();
+    const toSnap = current.features.filter((f) => current.selectedFeatureIds.has(f.id));
+    if (toSnap.length !== 2) return null;
+
+    const featureA = toSnap.find((f) => f.id === candidate.featureAId) || toSnap[0];
+    const featureB = toSnap.find((f) => f.id === candidate.featureBId) || toSnap[1];
+
+    const snapshot: HistorySnapshot = {
+      features: current.features.map((f) => ({ ...f })),
+      selectedFeatureIds: new Set(current.selectedFeatureIds),
+    };
+
+    const { updatedFeatureA, updatedFeatureB } = applySnap(featureA, featureB, candidate, mode);
+
+    const nextFeatures = current.features.map((f) => {
+      if (f.id === updatedFeatureA.id) return updatedFeatureA;
+      if (f.id === updatedFeatureB.id) return updatedFeatureB;
+      return f;
+    });
+
+    set({
+      features: nextFeatures,
+      past: [...current.past, snapshot],
+      future: [],
+    });
+
+    return { updatedFeatureA, updatedFeatureB };
+  },
+
   undo: () => {
     const current = get();
     if (current.past.length === 0) return;
@@ -228,5 +267,6 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
       future: [],
       combineModalOpen: false,
       joinModalOpen: false,
+      snapModalOpen: false,
     }),
 }));
