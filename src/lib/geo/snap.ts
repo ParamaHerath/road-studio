@@ -309,7 +309,7 @@ export function findSnapCandidates(
   ];
 
   const candidates: SnapCandidate[] = [];
-  const maxSearchDistance = Math.max(toleranceMeters * 3, 100);
+  const maxSearchDistance = Math.max(toleranceMeters * 5, 300);
 
   for (let i = 0; i < pairings.length; i++) {
     const p = pairings[i];
