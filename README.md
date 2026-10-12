@@ -107,4 +107,5 @@ npm install
 - **Milestone 4 — Combine & Rename**: ✅ Completed (Multipart combination preserving disconnected pieces, road designation modal, duplicate warning, snapshot undo/redo & keyboard shortcuts).
 - **Milestone 5 — Endpoint Inspection & Join**: ✅ Completed (Candidate endpoint inspection, distance display in metres, direction reversal, ambiguous-connection warnings, continuous join).
 - **Milestone 6 — Snap & Geometry Validation**: ✅ Completed (Configurable tolerance 1–100m, original vs proposed coordinate inspection, target modes, deflection and unintended intersection validation, applySnap).
-- **Milestone 7 — KML Export & Round-Trip Verification**: Next in sequence.
+- **Milestone 7 — KML Export & Round-Trip Verification**: ✅ Completed (Export full project or selected/visible scope, LineString & MultiGeometry placemark preservation, Google Earth Pro compatibility, ExtendedData metrics, export-import round-trip validation).
+- **Milestone 8 — Persistence & Recovery**: Next in sequence.

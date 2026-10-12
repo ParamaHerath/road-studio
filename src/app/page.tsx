@@ -6,6 +6,7 @@ import { ImportModal } from "@/components/import/ImportModal";
 import { CombineModal } from "@/components/combine/CombineModal";
 import { JoinModal } from "@/components/join/JoinModal";
 import { SnapModal } from "@/components/snap/SnapModal";
+import { ExportModal } from "@/components/export/ExportModal";
 import { MapCanvas } from "@/components/map/MapCanvas";
 import { useEditorStore } from "@/store/editorStore";
 import { FeatureListItem } from "@/components/layout/LeftSidebar";
@@ -18,6 +19,8 @@ export default function Home() {
     setImportSummary,
     importModalOpen,
     setImportModalOpen,
+    exportModalOpen,
+    setExportModalOpen,
     combineModalOpen,
     setCombineModalOpen,
     joinModalOpen,
@@ -105,6 +108,7 @@ export default function Home() {
         features={sidebarFeatures}
         selectedDetail={selectedDetail}
         onImportClick={() => setImportModalOpen(true)}
+        onExportClick={() => setExportModalOpen(true)}
         onNewProjectClick={resetProject}
         onToggleVisibility={toggleFeatureVisibility}
         onRenameFeature={renameFeature}
@@ -133,6 +137,13 @@ export default function Home() {
           setFeatures(result.features);
           setImportSummary(result.summary);
         }}
+      />
+
+      <ExportModal
+        isOpen={exportModalOpen}
+        features={features}
+        selectedFeatureIds={selectedFeatureIds}
+        onClose={() => setExportModalOpen(false)}
       />
 
       <CombineModal
