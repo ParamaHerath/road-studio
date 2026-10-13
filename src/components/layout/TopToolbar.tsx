@@ -2,12 +2,12 @@
 
 import * as React from "react";
 import {
-  Route,
-  FolderOpen,
+  Waypoints,
+  Import,
   FilePlus,
   Save,
-  Undo2,
-  Redo2,
+  Undo,
+  Redo,
   Layers,
   Download,
 } from "lucide-react";
@@ -48,7 +48,7 @@ export function TopToolbar({
       <div className="flex items-center gap-3">
 
         <div className="flex items-center gap-2">
-          <Route className="h-5 w-5 text-white stroke-[2.25]" />
+          <Waypoints className="h-5 w-5 text-white stroke-[2.25]" />
           <div className="flex items-center gap-2">
             <span className="font-bold tracking-tight text-sm text-zinc-100">
               Road Studio
@@ -102,7 +102,7 @@ export function TopToolbar({
           className="gap-1.5 border-zinc-800 bg-zinc-900/80 text-zinc-200 hover:text-white hover:border-zinc-700"
           title="Import KML file"
         >
-          <FolderOpen className="h-3.5 w-3.5" />
+          <Import className="h-3.5 w-3.5" />
           <span>Import KML</span>
         </Button>
 
@@ -137,7 +137,7 @@ export function TopToolbar({
           title="Undo (Ctrl+Z)"
           aria-label="Undo"
         >
-          <Undo2 className="h-3.5 w-3.5" />
+          <Undo className="h-3.5 w-3.5" />
         </Button>
         <Button
           variant="ghost"
@@ -147,7 +147,7 @@ export function TopToolbar({
           title="Redo (Ctrl+Y)"
           aria-label="Redo"
         >
-          <Redo2 className="h-3.5 w-3.5" />
+          <Redo className="h-3.5 w-3.5" />
         </Button>
 
         <div className="mx-1 h-4 w-[1px] bg-zinc-800" />

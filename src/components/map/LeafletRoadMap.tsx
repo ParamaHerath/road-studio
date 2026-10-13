@@ -15,14 +15,14 @@ export interface LeafletRoadMapProps {
 }
 
 export const ROAD_COLORS = {
-  // Default unselected road path color (darker slate-gray)
-  default: "#52525b",
-  // Hover road path color (crisp white)
-  hover: "#f4f4f5",
-  // Selected road path color (electric blue)
-  selected: "#00d2ff",
+  // Default unselected road path color
+  default: "#166534",
+  // Hover road path color
+  hover: "#16a34a",
+  // Selected road path color
+  selected: "#00f",
   // Segment endpoint bounds dot color
-  endpointDot: "#38bdf8",
+  endpointDot: "#fff",
 } as const;
 
 export function LeafletRoadMap({
@@ -146,7 +146,7 @@ export function LeafletRoadMap({
 
       const polyline = L.polyline(latLngs, {
         color: isSelected ? ROAD_COLORS.selected : ROAD_COLORS.default,
-        weight: isSelected ? 5.5 : 3.5,
+        weight: 3.5,
         opacity: isSelected ? 1.0 : 0.85,
         lineCap: "round",
         lineJoin: "round",
@@ -157,7 +157,7 @@ export function LeafletRoadMap({
         if (!selectedFeatureIdsRef.current.has(feat.id)) {
           polyline.setStyle({
             color: ROAD_COLORS.hover,
-            weight: 5,
+            weight: 3.5,
             opacity: 1,
           });
         }
@@ -207,8 +207,8 @@ export function LeafletRoadMap({
 
             [startPt, endPt].forEach((pt) => {
               const dot = L.circleMarker(pt, {
-                radius: 3.5,
-                color: "#09090b",
+                radius: 3,
+                color: ROAD_COLORS.default,
                 weight: 1.5,
                 fillColor: ROAD_COLORS.endpointDot,
                 fillOpacity: 0.9,
@@ -228,7 +228,7 @@ export function LeafletRoadMap({
       const isSelected = selectedFeatureIds.has(id);
       polyline.setStyle({
         color: isSelected ? ROAD_COLORS.selected : ROAD_COLORS.default,
-        weight: isSelected ? 5.5 : 3.5,
+        weight: 3.5,
         opacity: isSelected ? 1.0 : 0.85,
       });
     });
