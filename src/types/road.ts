@@ -54,4 +54,5 @@ export interface ImportResult {
   error?: string;
   rawKml?: string;
   fileHandle?: FileSystemFileHandle;
+  duplicateCount?: number;
 }

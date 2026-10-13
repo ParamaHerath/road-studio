@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import * as React from "react";
 import { ImportModal } from "./ImportModal";
 import { FIXTURE_CONSECUTIVE_SEGMENTS, FIXTURE_MALFORMED_XML } from "@/lib/kml/fixtures";
+import { parseKmlString } from "@/lib/kml/parser";
 
 describe("ImportModal", () => {
   it("does not render when isOpen is false", () => {
@@ -74,5 +75,30 @@ describe("ImportModal", () => {
 
     expect(handleSuccess).toHaveBeenCalledTimes(1);
     expect(handleClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows a visible warning when all imported paths are duplicates", async () => {
+    const existing = parseKmlString(FIXTURE_CONSECUTIVE_SEGMENTS, "existing.kml").features;
+
+    render(
+      <ImportModal
+        isOpen={true}
+        onClose={() => {}}
+        onImportSuccess={() => {}}
+        existingFeatures={existing}
+      />
+    );
+
+    const file = new File([FIXTURE_CONSECUTIVE_SEGMENTS], "sample.kml", {
+      type: "application/vnd.google-earth.kml+xml",
+    });
+    fireEvent.change(screen.getByTestId("file-input"), { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(screen.queryByTestId("import-error")).not.toBeInTheDocument();
+      expect(screen.getByTestId("import-summary")).toHaveTextContent(/paths exist already/i);
+      expect(screen.getByRole("button", { name: "Close" })).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Cancel" })).not.toBeInTheDocument();
+    });
   });
 });

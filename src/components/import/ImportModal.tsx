@@ -15,34 +15,59 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { parseKmlString } from "@/lib/kml/parser";
-import { ImportResult } from "@/types/road";
+import { createFilteredImportResult } from "@/lib/kml/import";
+import { ImportResult, RoadFeature } from "@/types/road";
 
 interface ImportModalProps {
   isOpen: boolean;
   onClose: () => void;
   onImportSuccess: (result: ImportResult) => void;
+  existingFeatures?: RoadFeature[];
 }
 
-export function ImportModal({ isOpen, onClose, onImportSuccess }: ImportModalProps) {
+export function ImportModal({
+  isOpen,
+  onClose,
+  onImportSuccess,
+  existingFeatures = [],
+}: ImportModalProps) {
   const [isDragging, setIsDragging] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [importResult, setImportResult] = React.useState<ImportResult | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const importRequestRef = React.useRef(0);
+  const pickerOpenRef = React.useRef(false);
+
+  const resetFileInput = React.useCallback(() => {
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }, []);
 
   const handleCloseModal = () => {
+    importRequestRef.current += 1;
+    pickerOpenRef.current = false;
     setError(null);
     setImportResult(null);
     setLoading(false);
     setIsDragging(false);
+    resetFileInput();
     onClose();
   };
+
+  React.useEffect(() => {
+    if (!isOpen) {
+      importRequestRef.current += 1;
+      resetFileInput();
+    }
+  }, [isOpen, resetFileInput]);
 
   if (!isOpen) return null;
 
   const handleProcessFile = async (file: File, fileHandle?: FileSystemFileHandle) => {
+    const requestId = ++importRequestRef.current;
     setError(null);
     setImportResult(null);
+    resetFileInput();
 
     if (!file.name.toLowerCase().endsWith(".kml") && !file.name.toLowerCase().endsWith(".xml")) {
       setError(`"${file.name}" is not a .kml file. Please select a valid KML road network file.`);
@@ -53,30 +78,41 @@ export function ImportModal({ isOpen, onClose, onImportSuccess }: ImportModalPro
 
     try {
       const text = await file.text();
-      // Parse in next tick so loading state renders immediately even for large files
-      setTimeout(() => {
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      if (requestId !== importRequestRef.current) return;
+
+      try {
         const result = parseKmlString(text, file.name);
-        setLoading(false);
         if (!result.success) {
           setError(result.error || "Failed to parse KML file.");
         } else {
-          setImportResult({ ...result, fileHandle });
+          const filteredResult = createFilteredImportResult({ ...result, fileHandle }, existingFeatures);
+          setImportResult(filteredResult);
         }
-      }, 50);
+      } catch (err) {
+        setError(`Failed to parse file: ${err instanceof Error ? err.message : String(err)}`);
+      } finally {
+        if (requestId === importRequestRef.current) setLoading(false);
+      }
     } catch (err) {
-      setLoading(false);
-      setError(`Failed to read file: ${err instanceof Error ? err.message : String(err)}`);
+      if (requestId === importRequestRef.current) {
+        setLoading(false);
+        setError(`Failed to read file: ${err instanceof Error ? err.message : String(err)}`);
+      }
     }
   };
 
   const handleBrowseFiles = async () => {
+    if (loading || pickerOpenRef.current) return;
+
     if (
       typeof window !== "undefined" &&
       "showOpenFilePicker" in window &&
       typeof window.showOpenFilePicker === "function"
     ) {
+      pickerOpenRef.current = true;
       try {
-        const [handle] = await window.showOpenFilePicker({
+        const handles = await window.showOpenFilePicker({
           types: [
             {
               description: "KML Road Network Files",
@@ -87,14 +123,19 @@ export function ImportModal({ isOpen, onClose, onImportSuccess }: ImportModalPro
             },
           ],
         });
+        const handle = handles[0];
+        if (!handle) return;
         const file = await handle.getFile();
         await handleProcessFile(file, handle);
-        return;
       } catch (err: unknown) {
         if (err instanceof DOMException && err.name === "AbortError") {
           return;
         }
+        setError(`Failed to open file: ${err instanceof Error ? err.message : String(err)}`);
+      } finally {
+        pickerOpenRef.current = false;
       }
+      return;
     }
     fileInputRef.current?.click();
   };
@@ -126,7 +167,7 @@ export function ImportModal({ isOpen, onClose, onImportSuccess }: ImportModalPro
   const handleConfirmImport = () => {
     if (importResult && importResult.success) {
       onImportSuccess(importResult);
-      onClose();
+      handleCloseModal();
     }
   };
 
@@ -161,7 +202,7 @@ export function ImportModal({ isOpen, onClose, onImportSuccess }: ImportModalPro
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
-              onClick={handleBrowseFiles}
+              onClick={() => void handleBrowseFiles()}
               className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 text-center cursor-pointer transition-all ${
                 isDragging
                   ? "border-zinc-400 bg-zinc-900 scale-[0.99]"
@@ -193,7 +234,7 @@ export function ImportModal({ isOpen, onClose, onImportSuccess }: ImportModalPro
             </div>
           )}
 
-          {/* Error Banner */}
+          {/* Parse/read errors only */}
           {error && (
             <div
               className="flex items-start gap-2.5 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-300"
@@ -210,9 +251,23 @@ export function ImportModal({ isOpen, onClose, onImportSuccess }: ImportModalPro
           {/* Import Summary Card */}
           {importResult && importResult.success && (
             <div className="flex flex-col gap-3 animate-in fade-in duration-150" data-testid="import-summary">
-              <div className="flex items-center gap-2 text-emerald-400 text-xs font-semibold">
-                <CheckCircle2 className="h-4 w-4" />
-                <span>KML file parsed successfully</span>
+              <div
+                className={`flex items-center gap-2 text-xs font-semibold ${
+                  importResult.duplicateCount ? "text-amber-300" : "text-emerald-400"
+                }`}
+              >
+                {importResult.duplicateCount ? (
+                  <AlertTriangle className="h-4 w-4" />
+                ) : (
+                  <CheckCircle2 className="h-4 w-4" />
+                )}
+                <span>
+                  {importResult.duplicateCount && importResult.features.length === 0
+                    ? "All paths exist already, hence importing is unnecessary."
+                    : importResult.duplicateCount
+                      ? `${importResult.duplicateCount} path${importResult.duplicateCount === 1 ? "" : "s"} exist${importResult.duplicateCount === 1 ? "s" : ""} already. ${importResult.features.length} new path${importResult.features.length === 1 ? "" : "s"} will be imported.`
+                      : "KML file parsed successfully"}
+                </span>
               </div>
 
               <Card className="border-zinc-800 bg-black/60">
@@ -254,11 +309,11 @@ export function ImportModal({ isOpen, onClose, onImportSuccess }: ImportModalPro
               </Card>
 
               {/* Warnings for unsupported constructs */}
-              {importResult.summary.warnings.length > 0 && (
+              {importResult.summary.warnings.length > 0 && !importResult.duplicateCount && (
                 <div className="flex items-start gap-2.5 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-300">
                   <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400 mt-0.5" />
                   <div className="flex-1 space-y-1">
-                    <span className="font-semibold text-amber-200">Unsupported Constructs Note:</span>
+                    <span className="font-semibold text-amber-200">Import Notes:</span>
                     {importResult.summary.warnings.map((w, idx) => (
                       <p key={idx} className="text-[11px] text-amber-300/90">
                         {w}
@@ -273,11 +328,13 @@ export function ImportModal({ isOpen, onClose, onImportSuccess }: ImportModalPro
 
         {/* Footer */}
         <div className="flex items-center justify-end gap-2 border-t border-zinc-800 bg-zinc-950/90 px-5 py-3">
-          <Button variant="ghost" size="sm" onClick={handleCloseModal}>
-            Cancel
-          </Button>
+          {!(importResult?.success && importResult.features.length === 0) && (
+            <Button variant="ghost" size="sm" onClick={handleCloseModal}>
+              Cancel
+            </Button>
+          )}
 
-          {importResult && importResult.success ? (
+          {importResult && importResult.success && importResult.features.length > 0 ? (
             <Button
               variant="default"
               size="sm"
@@ -288,11 +345,15 @@ export function ImportModal({ isOpen, onClose, onImportSuccess }: ImportModalPro
               <FileCheck2 className="h-3.5 w-3.5" />
               <span>Load into Project</span>
             </Button>
+          ) : importResult?.success && importResult.features.length === 0 ? (
+            <Button variant="default" size="sm" onClick={handleCloseModal}>
+              Close
+            </Button>
           ) : (
             <Button
               variant="outline"
               size="sm"
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => void handleBrowseFiles()}
               disabled={loading}
               className="gap-1.5 border-zinc-800"
             >

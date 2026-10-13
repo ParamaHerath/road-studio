@@ -17,6 +17,7 @@ import { useEditorStore, TileBackgroundMode } from "@/store/editorStore";
 
 interface TopToolbarProps {
   onImportClick?: () => void;
+  importDisabled?: boolean;
   onSaveClick?: () => void;
   onExportClick?: () => void;
   onNewProjectClick?: () => void;
@@ -28,6 +29,7 @@ interface TopToolbarProps {
 
 export function TopToolbar({
   onImportClick,
+  importDisabled = false,
   onSaveClick,
   onExportClick,
   onNewProjectClick,
@@ -99,6 +101,7 @@ export function TopToolbar({
           variant="outline"
           size="sm"
           onClick={onImportClick}
+          disabled={importDisabled}
           className="gap-1.5 border-zinc-800 bg-zinc-900/80 text-zinc-200 hover:text-white hover:border-zinc-700"
           title="Import KML file"
         >

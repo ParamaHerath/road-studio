@@ -11,6 +11,7 @@ interface EditorShellProps {
   features?: FeatureListItem[];
   selectedDetail?: SelectedFeatureDetail | null;
   onImportClick?: () => void;
+  importDisabled?: boolean;
   onSaveClick?: () => void;
   onExportClick?: () => void;
   onNewProjectClick?: () => void;
@@ -31,6 +32,7 @@ export const EditorShell = React.memo(function EditorShell({
   features = [],
   selectedDetail = null,
   onImportClick,
+  importDisabled = false,
   onSaveClick,
   onExportClick,
   onNewProjectClick,
@@ -52,6 +54,7 @@ export const EditorShell = React.memo(function EditorShell({
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-black text-zinc-100 font-sans">
       <TopToolbar
         onImportClick={onImportClick}
+        importDisabled={importDisabled}
         onSaveClick={onSaveClick}
         onExportClick={onExportClick}
         onNewProjectClick={onNewProjectClick}

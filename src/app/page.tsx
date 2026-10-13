@@ -13,6 +13,7 @@ import { useEditorStore } from "@/store/editorStore";
 import { loadProjectSession, saveProjectSession } from "@/lib/db/projectDb";
 import { FeatureListItem } from "@/components/layout/LeftSidebar";
 import type { ImportResult } from "@/types/road";
+import { createFilteredImportResult } from "@/lib/kml/import";
 
 // Isolated Map canvas container: selection updates re-render only the map vector styles, not the parent page
 const ConnectedMapCanvas = React.memo(function ConnectedMapCanvas() {
@@ -72,13 +73,19 @@ const EditorModals = React.memo(function EditorModals() {
 
   const handleImportSuccess = React.useCallback(
     (result: ImportResult) => {
-      setFeatures(result.features);
-      setImportSummary(result.summary);
-      if (result.summary.filename) {
-        setCurrentFileName(result.summary.filename);
+      const currentFeatures = useEditorStore.getState().features;
+      const filteredResult = createFilteredImportResult(result, currentFeatures);
+      if (!filteredResult.success || filteredResult.features.length === 0) {
+        return;
       }
-      if (result.fileHandle) {
-        setFileHandle(result.fileHandle);
+
+      setFeatures([...currentFeatures, ...filteredResult.features]);
+      setImportSummary(filteredResult.summary);
+      if (filteredResult.summary.filename) {
+        setCurrentFileName(filteredResult.summary.filename);
+      }
+      if (filteredResult.fileHandle) {
+        setFileHandle(filteredResult.fileHandle);
       }
     },
     [setFeatures, setImportSummary, setCurrentFileName, setFileHandle]
@@ -90,6 +97,7 @@ const EditorModals = React.memo(function EditorModals() {
         isOpen={importModalOpen}
         onClose={() => setImportModalOpen(false)}
         onImportSuccess={handleImportSuccess}
+        existingFeatures={features}
       />
 
       <ExportModal
@@ -154,19 +162,27 @@ export default function Home() {
   const setNewProjectModalOpen = useEditorStore((state) => state.setNewProjectModalOpen);
 
   const isInitialLoadRef = React.useRef(true);
+  const [sessionReady, setSessionReady] = React.useState(false);
 
   // Restore saved session from IndexedDB on initial mount
   React.useEffect(() => {
-    loadProjectSession().then((session) => {
-      if (session && session.features && session.features.length > 0) {
-        restoreSession(
-          session.features,
-          session.selectedFeatureIds || [],
-          session.importSummary || null
-        );
-      }
-      isInitialLoadRef.current = false;
-    });
+    loadProjectSession()
+      .then((session) => {
+        if (session && session.features && session.features.length > 0) {
+          restoreSession(
+            session.features,
+            session.selectedFeatureIds || [],
+            session.importSummary || null
+          );
+        }
+      })
+      .catch((error) => {
+        console.warn("Failed to restore the saved project session:", error);
+      })
+      .finally(() => {
+        isInitialLoadRef.current = false;
+        setSessionReady(true);
+      });
   }, [restoreSession]);
 
   // Debounced auto-save to IndexedDB whenever features change (reads latest selectedFeatureIds from store directly)
@@ -176,13 +192,17 @@ export default function Home() {
 
     setStorageStatus("saving");
     const timer = setTimeout(() => {
-      saveProjectSession(
+      void saveProjectSession(
         features,
         useEditorStore.getState().selectedFeatureIds,
         importSummary
-      ).then(() => {
-        setStorageStatus("saved");
-      });
+      )
+        .then((saved) => {
+          if (saved) setStorageStatus("saved");
+        })
+        .catch((error) => {
+          console.warn("Failed to save the project session:", error);
+        });
     }, 600);
 
     return () => clearTimeout(timer);
@@ -228,7 +248,9 @@ export default function Home() {
     }));
   }, [features]);
 
-  const handleImportClick = React.useCallback(() => setImportModalOpen(true), [setImportModalOpen]);
+  const handleImportClick = React.useCallback(() => {
+    if (sessionReady) setImportModalOpen(true);
+  }, [sessionReady, setImportModalOpen]);
   const handleExportClick = React.useCallback(() => setExportModalOpen(true), [setExportModalOpen]);
   const handleNewProjectClick = React.useCallback(() => {
     if (features.length > 0) {
@@ -253,6 +275,7 @@ export default function Home() {
       <EditorShell
         features={sidebarFeatures}
         onImportClick={handleImportClick}
+        importDisabled={!sessionReady}
         onSaveClick={saveCurrentKml}
         onExportClick={handleExportClick}
         onNewProjectClick={handleNewProjectClick}
