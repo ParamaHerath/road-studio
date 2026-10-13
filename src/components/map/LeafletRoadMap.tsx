@@ -40,7 +40,9 @@ export function LeafletRoadMap({
   const polylineMapRef = React.useRef<Map<string, L.Polyline>>(new Map());
   const endpointDotsGroupRef = React.useRef<L.FeatureGroup | null>(null);
   const selectedFeatureIdsRef = React.useRef(selectedFeatureIds);
-  selectedFeatureIdsRef.current = selectedFeatureIds;
+
+  // Shared Canvas renderer — replaces thousands of SVG DOM nodes with a single GPU-backed <canvas>
+  const canvasRendererRef = React.useRef<L.Canvas | null>(null);
 
   // Initialize Leaflet Map
   React.useEffect(() => {
@@ -53,8 +55,12 @@ export function LeafletRoadMap({
       zoom: 8,
       zoomControl: true,
       attributionControl: true,
+      // Enable canvas vector rendering for high performance with thousands of road segments
+      preferCanvas: true,
+      renderer: L.canvas({ padding: 0.5 }),
     });
 
+    canvasRendererRef.current = L.canvas({ padding: 0.5 });
     mapInstanceRef.current = map;
 
     const featureGroup = L.featureGroup().addTo(map);
@@ -72,6 +78,7 @@ export function LeafletRoadMap({
       clearTimeout(timer);
       map.remove();
       mapInstanceRef.current = null;
+      canvasRendererRef.current = null;
     };
   }, []);
 
@@ -150,6 +157,8 @@ export function LeafletRoadMap({
         opacity: isSelected ? 1.0 : 0.85,
         lineCap: "round",
         lineJoin: "round",
+        // Use canvas renderer for this polyline
+        renderer: canvasRendererRef.current ?? undefined,
       });
 
       // Hover and Click events
@@ -213,6 +222,8 @@ export function LeafletRoadMap({
                 fillColor: ROAD_COLORS.endpointDot,
                 fillOpacity: 0.9,
                 interactive: false,
+                // Use canvas renderer for endpoint dots
+                renderer: canvasRendererRef.current ?? undefined,
               });
               dotsGroup.addLayer(dot);
             });
@@ -224,6 +235,7 @@ export function LeafletRoadMap({
 
   // Update styles in-place when selection changes without rebuilding all SVG polylines
   React.useEffect(() => {
+    selectedFeatureIdsRef.current = selectedFeatureIds;
     polylineMapRef.current.forEach((polyline, id) => {
       const isSelected = selectedFeatureIds.has(id);
       polyline.setStyle({

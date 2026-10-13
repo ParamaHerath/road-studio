@@ -84,4 +84,26 @@ describe("LeftSidebar", () => {
     fireEvent.click(screen.getByText("Deselect All"));
     expect(useEditorStore.getState().selectedFeatureIds.size).toBe(0);
   });
+
+  it("virtualizes list to avoid DOM node explosion when thousands of features exist", () => {
+    const largeFeatureList: FeatureListItem[] = Array.from({ length: 1000 }, (_, i) => ({
+      id: `feat-${i}`,
+      name: `Road Segment #${i}`,
+      type: "LineString",
+      componentCount: 1,
+      coordinateCount: 20,
+      visible: true,
+    }));
+
+    render(<LeftSidebar features={largeFeatureList} />);
+
+    // First item is rendered in the initial viewport
+    expect(screen.getByText("Road Segment #0")).toBeInTheDocument();
+    // Far-away item is NOT rendered in the DOM
+    expect(screen.queryByText("Road Segment #999")).not.toBeInTheDocument();
+
+    // Checkbox count is bounded by virtualization window (much less than 1000)
+    const checkboxes = screen.getAllByRole("checkbox");
+    expect(checkboxes.length).toBeLessThan(50);
+  });
 });

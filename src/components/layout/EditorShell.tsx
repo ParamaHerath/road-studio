@@ -27,7 +27,7 @@ interface EditorShellProps {
   children?: React.ReactNode;
 }
 
-export function EditorShell({
+export const EditorShell = React.memo(function EditorShell({
   features = [],
   selectedDetail = null,
   onImportClick,
@@ -46,7 +46,6 @@ export function EditorShell({
   onSnapSelected,
   children,
 }: EditorShellProps) {
-  const selectedCount = useEditorStore((state) => state.selectedFeatureIds.size);
   const clearSelection = useEditorStore((state) => state.clearSelection);
 
   return (
@@ -68,7 +67,6 @@ export function EditorShell({
           onLocateFeature={onLocateFeature}
         />
         <MainCanvas
-          selectedCount={selectedCount}
           onCombineSelected={onCombineSelected}
           onJoinSelected={onJoinSelected}
           onSnapSelected={onSnapSelected}
@@ -78,7 +76,6 @@ export function EditorShell({
         </MainCanvas>
         <PropertiesPanel
           selectedDetail={selectedDetail}
-          selectedCount={selectedCount}
           onRenameFeature={onRenameFeature}
           onCombineSelected={onCombineSelected}
           onJoinSelected={onJoinSelected}
@@ -87,4 +84,4 @@ export function EditorShell({
       </div>
     </div>
   );
-}
+});

@@ -27,15 +27,39 @@ interface PropertiesPanelProps {
   onSnapSelected?: () => void;
 }
 
-export function PropertiesPanel({
-  selectedDetail,
-  selectedCount = 0,
+export const PropertiesPanel = React.memo(function PropertiesPanel({
+  selectedDetail: propSelectedDetail,
+  selectedCount: propSelectedCount,
   onRenameFeature,
   onCombineSelected,
   onJoinSelected,
   onSnapSelected,
 }: PropertiesPanelProps) {
-  const { propertiesPanelOpen, togglePropertiesPanel } = useEditorStore();
+  const propertiesPanelOpen = useEditorStore((state) => state.propertiesPanelOpen);
+  const togglePropertiesPanel = useEditorStore((state) => state.togglePropertiesPanel);
+  const storeSelectedCount = useEditorStore((state) => state.selectedFeatureIds.size);
+  const selectedCount = propSelectedCount !== undefined ? propSelectedCount : storeSelectedCount;
+
+  const selectedFeatureIds = useEditorStore((state) => state.selectedFeatureIds);
+  const features = useEditorStore((state) => state.features);
+
+  const selectedDetail: SelectedFeatureDetail | null = React.useMemo(() => {
+    if (propSelectedDetail !== undefined) return propSelectedDetail;
+    if (selectedFeatureIds.size !== 1) return null;
+    const selectedId = Array.from(selectedFeatureIds)[0];
+    const feat = features.find((f) => f.id === selectedId);
+    if (!feat) return null;
+    return {
+      id: feat.id,
+      name: feat.name,
+      type: feat.geometry.type,
+      componentCount: feat.metadata.componentCount,
+      coordinateCount: feat.metadata.coordinateCount,
+      description: feat.description,
+      lengthKm: feat.metadata.lengthMeters / 1000,
+    };
+  }, [propSelectedDetail, selectedFeatureIds, features]);
+
   const [editingId, setEditingId] = React.useState<string | null>(null);
   const [nameInput, setNameInput] = React.useState("");
 
@@ -240,4 +264,4 @@ export function PropertiesPanel({
       </div>
     </aside>
   );
-}
+});

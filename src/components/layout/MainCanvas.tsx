@@ -22,15 +22,18 @@ interface MainCanvasProps {
   onClearSelection?: () => void;
 }
 
-export function MainCanvas({
+export const MainCanvas = React.memo(function MainCanvas({
   children,
-  selectedCount = 0,
+  selectedCount: propSelectedCount,
   onCombineSelected,
   onJoinSelected,
   onSnapSelected,
   onClearSelection,
 }: MainCanvasProps) {
-  const { backgroundMode, activeTool } = useEditorStore();
+  const backgroundMode = useEditorStore((state) => state.backgroundMode);
+  const activeTool = useEditorStore((state) => state.activeTool);
+  const storeSelectedCount = useEditorStore((state) => state.selectedFeatureIds.size);
+  const selectedCount = propSelectedCount !== undefined ? propSelectedCount : storeSelectedCount;
 
   return (
     <main
@@ -150,4 +153,4 @@ export function MainCanvas({
       )}
     </main>
   );
-}
+});

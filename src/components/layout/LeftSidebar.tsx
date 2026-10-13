@@ -40,6 +40,9 @@ interface FeatureRowProps {
   onToggleVisibility?: (id: string) => void;
 }
 
+const ROW_HEIGHT = 48;
+const OVERSCAN = 6;
+
 const FeatureRow = React.memo(function FeatureRow({
   feature,
   isSelected,
@@ -50,10 +53,10 @@ const FeatureRow = React.memo(function FeatureRow({
   return (
     <div
       onClick={() => onToggleSelect(feature.id)}
-      className={`flex items-center justify-between px-3 py-2 text-xs cursor-pointer transition-colors ${
+      className={`flex items-center justify-between px-3 h-[48px] box-border border-b border-zinc-800/60 text-xs cursor-pointer select-none transition-colors ${
         isSelected
-          ? "bg-zinc-800/80 border-l-2 border-white text-zinc-100"
-          : "hover:bg-zinc-900/60 text-zinc-300"
+          ? "bg-zinc-800/80 border-l-2 border-l-white text-zinc-100"
+          : "hover:bg-zinc-900/60 text-zinc-300 border-l-2 border-l-transparent"
       }`}
     >
       <div className="flex items-center gap-2.5 min-w-0 pr-2">
@@ -61,13 +64,13 @@ const FeatureRow = React.memo(function FeatureRow({
           type="checkbox"
           checked={isSelected}
           onChange={() => {}} // handled by row click
-          className="h-3.5 w-3.5 rounded border-zinc-700 bg-zinc-900 text-white accent-zinc-200 focus:ring-0 cursor-pointer"
+          className="h-3.5 w-3.5 rounded border-zinc-700 bg-zinc-900 text-white accent-zinc-200 focus:ring-0 cursor-pointer shrink-0"
         />
         <div className="truncate">
-          <div className="font-medium text-zinc-200 truncate">
+          <div className="font-medium text-zinc-200 truncate leading-snug">
             {feature.name || "Unnamed Road"}
           </div>
-          <div className="flex items-center gap-2 text-[10px] text-zinc-500">
+          <div className="flex items-center gap-2 text-[10px] text-zinc-500 leading-none mt-0.5">
             <span>{feature.type}</span>
             <span>•</span>
             <span>{feature.componentCount} seg</span>
@@ -115,7 +118,7 @@ const FeatureRow = React.memo(function FeatureRow({
   );
 });
 
-export function LeftSidebar({
+export const LeftSidebar = React.memo(function LeftSidebar({
   features = [],
   onToggleVisibility,
   onLocateFeature,
@@ -129,6 +132,42 @@ export function LeftSidebar({
   const setSelectedFeatureIds = useEditorStore((state) => state.setSelectedFeatureIds);
   const clearSelection = useEditorStore((state) => state.clearSelection);
 
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  const [scrollTop, setScrollTop] = React.useState(0);
+  const [containerHeight, setContainerHeight] = React.useState(800);
+
+  // Measure container height dynamically for virtualization
+  React.useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const updateHeight = () => {
+      if (container.clientHeight > 0) {
+        setContainerHeight(container.clientHeight);
+      }
+    };
+    updateHeight();
+
+    if (typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(updateHeight);
+      observer.observe(container);
+      return () => observer.disconnect();
+    }
+  }, [sidebarOpen]);
+
+  // Handle scroll events on the virtual list container
+  const handleScroll = React.useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    setScrollTop(e.currentTarget.scrollTop);
+  }, []);
+
+  // Reset scroll to top when search query changes
+  React.useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+      setScrollTop(0);
+    }
+  }, [searchQuery]);
+
   const filteredFeatures = React.useMemo(() => {
     if (!searchQuery.trim()) return features;
     const q = searchQuery.toLowerCase();
@@ -137,6 +176,7 @@ export function LeftSidebar({
 
   const allSelected =
     filteredFeatures.length > 0 &&
+    selectedFeatureIds.size >= filteredFeatures.length &&
     filteredFeatures.every((f) => selectedFeatureIds.has(f.id));
 
   const handleToggleSelectAll = () => {
@@ -148,6 +188,23 @@ export function LeftSidebar({
       setSelectedFeatureIds(next);
     }
   };
+
+  // Virtualization window calculations
+  const totalHeight = filteredFeatures.length * ROW_HEIGHT;
+  const effectiveHeight = containerHeight > 0 ? containerHeight : 800;
+  const startIndex = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN);
+  const endIndex = Math.min(
+    filteredFeatures.length,
+    Math.ceil((scrollTop + effectiveHeight) / ROW_HEIGHT) + OVERSCAN
+  );
+
+  const visibleItems = React.useMemo(() => {
+    const items: Array<{ feature: FeatureListItem; index: number }> = [];
+    for (let i = startIndex; i < endIndex; i++) {
+      items.push({ feature: filteredFeatures[i], index: i });
+    }
+    return items;
+  }, [filteredFeatures, startIndex, endIndex]);
 
   if (!sidebarOpen) {
     return (
@@ -242,8 +299,13 @@ export function LeftSidebar({
         </div>
       </div>
 
-      {/* Feature List */}
-      <div className="flex-1 overflow-y-auto divide-y divide-zinc-800/60">
+      {/* Feature List (Virtual Windowed) */}
+      <div
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto relative"
+        data-testid="sidebar-feature-list"
+      >
         {features.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-8 text-center text-zinc-400 h-64">
             <Layers className="h-10 w-10 text-zinc-700 mb-2 stroke-1" />
@@ -257,19 +319,37 @@ export function LeftSidebar({
             No segments match &ldquo;{searchQuery}&rdquo;
           </div>
         ) : (
-          filteredFeatures.map((feature) => {
-            const isSelected = selectedFeatureIds.has(feature.id);
-            return (
-              <FeatureRow
-                key={feature.id}
-                feature={feature}
-                isSelected={isSelected}
-                onToggleSelect={toggleSelectFeature}
-                onLocateFeature={onLocateFeature}
-                onToggleVisibility={onToggleVisibility}
-              />
-            );
-          })
+          <div
+            style={{
+              height: `${totalHeight}px`,
+              width: "100%",
+              position: "relative",
+            }}
+          >
+            {visibleItems.map(({ feature, index }) => {
+              const isSelected = selectedFeatureIds.has(feature.id);
+              return (
+                <div
+                  key={feature.id}
+                  style={{
+                    position: "absolute",
+                    top: `${index * ROW_HEIGHT}px`,
+                    left: 0,
+                    right: 0,
+                    height: `${ROW_HEIGHT}px`,
+                  }}
+                >
+                  <FeatureRow
+                    feature={feature}
+                    isSelected={isSelected}
+                    onToggleSelect={toggleSelectFeature}
+                    onLocateFeature={onLocateFeature}
+                    onToggleVisibility={onToggleVisibility}
+                  />
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
 
@@ -291,4 +371,4 @@ export function LeftSidebar({
       )}
     </aside>
   );
-}
+});
