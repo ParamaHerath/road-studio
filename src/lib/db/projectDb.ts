@@ -12,6 +12,7 @@ export interface SavedProjectSession {
   selectedFeatureIds: string[];
   importSummary: ImportSummary | null;
   metadata: ProjectMetadata;
+  initialImportedFeatures?: RoadFeature[];
 }
 
 interface RoadStudioDB extends DBSchema {
@@ -55,7 +56,8 @@ export async function saveProjectSession(
   features: RoadFeature[],
   selectedFeatureIds: Set<string>,
   importSummary: ImportSummary | null,
-  projectName = "Untitled Project"
+  projectName = "Untitled Project",
+  initialImportedFeatures?: RoadFeature[]
 ): Promise<boolean> {
   const db = getDb();
   if (!db) return false;
@@ -70,6 +72,7 @@ export async function saveProjectSession(
         lastSavedAt: Date.now(),
         version: 1,
       },
+      initialImportedFeatures,
     };
 
     const database = await db;

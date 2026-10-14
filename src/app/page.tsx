@@ -38,6 +38,7 @@ const ConnectedMapCanvas = React.memo(function ConnectedMapCanvas() {
 const EditorModals = React.memo(function EditorModals() {
   const features = useEditorStore((state) => state.features);
   const setFeatures = useEditorStore((state) => state.setFeatures);
+  const recordImportedFeatures = useEditorStore((state) => state.recordImportedFeatures);
   const setImportSummary = useEditorStore((state) => state.setImportSummary);
   const setCurrentFileName = useEditorStore((state) => state.setCurrentFileName);
   const setFileHandle = useEditorStore((state) => state.setFileHandle);
@@ -80,6 +81,7 @@ const EditorModals = React.memo(function EditorModals() {
       }
 
       setFeatures([...currentFeatures, ...filteredResult.features]);
+      recordImportedFeatures(filteredResult.features);
       setImportSummary(filteredResult.summary);
       if (filteredResult.summary.filename) {
         setCurrentFileName(filteredResult.summary.filename);
@@ -88,7 +90,7 @@ const EditorModals = React.memo(function EditorModals() {
         setFileHandle(filteredResult.fileHandle);
       }
     },
-    [setFeatures, setImportSummary, setCurrentFileName, setFileHandle]
+    [setFeatures, recordImportedFeatures, setImportSummary, setCurrentFileName, setFileHandle]
   );
 
   return (
@@ -144,6 +146,7 @@ export default function Home() {
   const features = useEditorStore((state) => state.features);
   const importSummary = useEditorStore((state) => state.importSummary);
   const restoreSession = useEditorStore((state) => state.restoreSession);
+  const startOver = useEditorStore((state) => state.startOver);
   const setStorageStatus = useEditorStore((state) => state.setStorageStatus);
   const saveCurrentKml = useEditorStore((state) => state.saveCurrentKml);
   const undo = useEditorStore((state) => state.undo);
@@ -172,7 +175,8 @@ export default function Home() {
           restoreSession(
             session.features,
             session.selectedFeatureIds || [],
-            session.importSummary || null
+            session.importSummary || null,
+            session.initialImportedFeatures
           );
         }
       })
@@ -195,7 +199,9 @@ export default function Home() {
       void saveProjectSession(
         features,
         useEditorStore.getState().selectedFeatureIds,
-        importSummary
+        importSummary,
+        "Untitled Project",
+        useEditorStore.getState().initialImportedFeatures
       )
         .then((saved) => {
           if (saved) setStorageStatus("saved");
@@ -276,6 +282,7 @@ export default function Home() {
         features={sidebarFeatures}
         onImportClick={handleImportClick}
         importDisabled={!sessionReady}
+        onStartOverClick={startOver}
         onSaveClick={saveCurrentKml}
         onExportClick={handleExportClick}
         onNewProjectClick={handleNewProjectClick}

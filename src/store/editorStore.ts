@@ -36,6 +36,7 @@ export interface EditorUiState {
 
   // Features data
   features: RoadFeature[];
+  initialImportedFeatures: RoadFeature[];
   importSummary: ImportSummary | null;
 
   // History for undo/redo
@@ -63,6 +64,8 @@ export interface EditorUiState {
   setFileHandle: (handle: FileSystemFileHandle | null) => void;
   setSaveStatusMessage: (msg: string | null) => void;
   setFeatures: (features: RoadFeature[]) => void;
+  recordImportedFeatures: (importedFeatures: RoadFeature[]) => void;
+  startOver: () => void;
   setImportSummary: (summary: ImportSummary | null) => void;
   toggleFeatureVisibility: (id: string) => void;
   renameFeature: (id: string, newName: string) => void;
@@ -79,7 +82,8 @@ export interface EditorUiState {
   restoreSession: (
     features: RoadFeature[],
     selectedIds: string[],
-    summary: ImportSummary | null
+    summary: ImportSummary | null,
+    initialImportedFeatures?: RoadFeature[]
   ) => void;
   undo: () => void;
   redo: () => void;
@@ -105,6 +109,7 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
   fileHandle: null,
   saveStatusMessage: null,
   features: [],
+  initialImportedFeatures: [],
   importSummary: null,
   past: [],
   future: [],
@@ -172,7 +177,9 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
           await saveProjectSession(
             current.features,
             current.selectedFeatureIds,
-            current.importSummary
+            current.importSummary,
+            current.currentFileName.replace(/\.kml$/i, ""),
+            current.initialImportedFeatures
           );
         } catch (error) {
           console.warn("Failed to persist the saved KML session:", error);
@@ -201,9 +208,20 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
     }
   },
 
-  restoreSession: (features, selectedIds, summary) =>
+  restoreSession: (features, selectedIds, summary, initialImportedFeatures) =>
     set({
       features,
+      initialImportedFeatures:
+        initialImportedFeatures && initialImportedFeatures.length > 0
+          ? initialImportedFeatures
+          : features.map((f) => ({
+              ...f,
+              geometry: {
+                ...f.geometry,
+                coordinates: JSON.parse(JSON.stringify(f.geometry.coordinates)),
+              },
+              metadata: { ...f.metadata },
+            })),
       selectedFeatureIds: new Set(selectedIds),
       importSummary: summary,
       currentFileName: summary?.filename || "road-network.kml",
@@ -211,6 +229,51 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
       future: [],
       storageStatus: "restored",
     }),
+
+  recordImportedFeatures: (importedFeatures) => {
+    const cloned = importedFeatures.map((f) => ({
+      ...f,
+      geometry: {
+        ...f.geometry,
+        coordinates: JSON.parse(JSON.stringify(f.geometry.coordinates)),
+      },
+      metadata: { ...f.metadata },
+    }));
+    set((state) => ({
+      initialImportedFeatures: [...state.initialImportedFeatures, ...cloned],
+    }));
+  },
+
+  startOver: () => {
+    const current = get();
+    const sourceFeatures =
+      current.initialImportedFeatures.length > 0
+        ? current.initialImportedFeatures
+        : current.features;
+
+    if (sourceFeatures.length === 0) return;
+
+    const resetFeatures = sourceFeatures.map((f) => ({
+      ...f,
+      visible: true,
+      geometry: {
+        ...f.geometry,
+        coordinates: JSON.parse(JSON.stringify(f.geometry.coordinates)),
+      },
+      metadata: { ...f.metadata },
+    }));
+
+    set({
+      features: resetFeatures,
+      selectedFeatureIds: new Set(),
+      searchQuery: "",
+      focusedFeatureId: null,
+      past: [],
+      future: [],
+      storageStatus: "idle",
+      saveStatusMessage: "Workspace reset to original imported state",
+    });
+  },
 
   setFeatures: (features) => {
     const current = get();
@@ -392,6 +455,7 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
     clearProjectSession();
     set({
       features: [],
+      initialImportedFeatures: [],
       importSummary: null,
       selectedFeatureIds: new Set(),
       searchQuery: "",

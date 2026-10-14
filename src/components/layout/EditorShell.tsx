@@ -12,6 +12,7 @@ interface EditorShellProps {
   selectedDetail?: SelectedFeatureDetail | null;
   onImportClick?: () => void;
   importDisabled?: boolean;
+  onStartOverClick?: () => void;
   onSaveClick?: () => void;
   onExportClick?: () => void;
   onNewProjectClick?: () => void;
@@ -33,6 +34,7 @@ export const EditorShell = React.memo(function EditorShell({
   selectedDetail = null,
   onImportClick,
   importDisabled = false,
+  onStartOverClick,
   onSaveClick,
   onExportClick,
   onNewProjectClick,
@@ -55,6 +57,7 @@ export const EditorShell = React.memo(function EditorShell({
       <TopToolbar
         onImportClick={onImportClick}
         importDisabled={importDisabled}
+        onStartOverClick={onStartOverClick}
         onSaveClick={onSaveClick}
         onExportClick={onExportClick}
         onNewProjectClick={onNewProjectClick}

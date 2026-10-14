@@ -9,6 +9,7 @@ import {
   Undo,
   Redo,
   Download,
+  RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +18,7 @@ import { useEditorStore } from "@/store/editorStore";
 interface TopToolbarProps {
   onImportClick?: () => void;
   importDisabled?: boolean;
+  onStartOverClick?: () => void;
   onSaveClick?: () => void;
   onExportClick?: () => void;
   onNewProjectClick?: () => void;
@@ -29,6 +31,7 @@ interface TopToolbarProps {
 export function TopToolbar({
   onImportClick,
   importDisabled = false,
+  onStartOverClick,
   onSaveClick,
   onExportClick,
   onNewProjectClick,
@@ -39,13 +42,14 @@ export function TopToolbar({
 }: TopToolbarProps) {
   const storageStatus = useEditorStore((state) => state.storageStatus);
   const featureCount = useEditorStore((state) => state.features.length);
+  const initialImportedCount = useEditorStore((state) => state.initialImportedFeatures.length);
   const currentFileName = useEditorStore((state) => state.currentFileName);
+  const canStartOver = featureCount > 0 || initialImportedCount > 0;
 
   return (
     <header className="flex h-12 w-full items-center justify-between border-b border-zinc-800 bg-black/95 px-3 backdrop-blur z-20 select-none">
       {/* Brand & Left toggles */}
       <div className="flex items-center gap-3">
-
         <div className="flex items-center gap-2">
           <Waypoints className="h-5 w-5 text-white stroke-[2.25]" />
           <div className="flex items-center gap-2">
@@ -81,7 +85,7 @@ export function TopToolbar({
         </div>
       </div>
 
-      {/* Middle Operations */}
+      {/* Right Actions & Operations */}
       <div className="flex items-center gap-1.5">
         <Button
           variant="ghost"
@@ -109,22 +113,33 @@ export function TopToolbar({
         <Button
           variant="outline"
           size="sm"
+          onClick={onStartOverClick}
+          disabled={!canStartOver}
+          className="gap-1.5 border-zinc-800 bg-zinc-900/80 text-zinc-200 hover:text-white hover:border-zinc-700"
+          title={
+            canStartOver
+              ? "Reset workspace to the original imported state"
+              : "No road segments loaded"
+          }
+        >
+          <RotateCcw className="h-3.5 w-3.5 text-zinc-400" />
+          <span>Start Over</span>
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
           onClick={onSaveClick}
           disabled={featureCount === 0}
           className="gap-1.5 border-zinc-800 bg-zinc-900/80 text-zinc-200 hover:text-white hover:border-zinc-700"
           title={
             featureCount > 0
-              ? `Save / Overwrite "${currentFileName}" (Ctrl+S) — ${featureCount} segments remaining`
+              ? `Save / Overwrite "${currentFileName}" (Ctrl+S)`
               : "No road segments loaded"
           }
         >
           <Save className="h-3.5 w-3.5" />
-          <span>Save KML</span>
-          {featureCount > 0 && (
-            <Badge variant="secondary" className="text-[10px] px-1 py-0 ml-0.5 bg-zinc-800 text-zinc-300 font-mono">
-              {featureCount}
-            </Badge>
-          )}
+          <span>Save</span>
         </Button>
 
         <div className="mx-1 h-4 w-[1px] bg-zinc-800" />
@@ -149,10 +164,9 @@ export function TopToolbar({
         >
           <Redo className="h-3.5 w-3.5" />
         </Button>
-      </div>
 
-      {/* Right Actions */}
-      <div className="flex items-center gap-1.5">
+        <div className="mx-1 h-4 w-[1px] bg-zinc-800" />
+
         <Button
           variant="default"
           size="sm"

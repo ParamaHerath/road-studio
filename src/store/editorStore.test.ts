@@ -199,4 +199,31 @@ describe("editorStore", () => {
     redo();
     expect(useEditorStore.getState().features[0].name).toBe("New Name");
   });
+
+  it("should reset workspace to original imported state with startOver", () => {
+    const f1: RoadFeature = {
+      id: "road-orig",
+      name: "Original Highway",
+      geometry: { type: "LineString", coordinates: [[79.8, 6.9], [79.9, 7.0]] },
+      visible: true,
+      properties: {},
+      metadata: { componentCount: 1, coordinateCount: 2, lengthMeters: 1000, bbox: [79.8, 6.9, 79.9, 7.0] },
+    };
+
+    const { setFeatures, recordImportedFeatures, renameFeature, startOver } =
+      useEditorStore.getState();
+
+    setFeatures([f1]);
+    recordImportedFeatures([f1]);
+
+    // Modify the feature
+    renameFeature("road-orig", "Renamed Highway");
+    expect(useEditorStore.getState().features[0].name).toBe("Renamed Highway");
+
+    // Call startOver
+    startOver();
+    expect(useEditorStore.getState().features).toHaveLength(1);
+    expect(useEditorStore.getState().features[0].name).toBe("Original Highway");
+    expect(useEditorStore.getState().selectedFeatureIds.size).toBe(0);
+  });
 });

@@ -20,6 +20,8 @@ describe("EditorShell", () => {
     render(<EditorShell />);
     expect(screen.getByText("Road Studio")).toBeInTheDocument();
     expect(screen.getByText("Import KML")).toBeInTheDocument();
+    expect(screen.getByText("Start Over")).toBeInTheDocument();
+    expect(screen.getByText("Save")).toBeInTheDocument();
     expect(screen.getByText("Export KML")).toBeInTheDocument();
   });
 
