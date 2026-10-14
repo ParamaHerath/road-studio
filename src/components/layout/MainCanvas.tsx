@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useEditorStore } from "@/store/editorStore";
+import { useEditorStore, TileBackgroundMode } from "@/store/editorStore";
 
 interface MainCanvasProps {
   children?: React.ReactNode;
@@ -30,6 +30,7 @@ export const MainCanvas = React.memo(function MainCanvas({
   onClearSelection,
 }: MainCanvasProps) {
   const backgroundMode = useEditorStore((state) => state.backgroundMode);
+  const setBackgroundMode = useEditorStore((state) => state.setBackgroundMode);
   const activeTool = useEditorStore((state) => state.activeTool);
   const storeSelectedCount = useEditorStore((state) => state.selectedFeatureIds.size);
   const selectedCount = propSelectedCount !== undefined ? propSelectedCount : storeSelectedCount;
@@ -82,23 +83,37 @@ export const MainCanvas = React.memo(function MainCanvas({
         )}
       </div>
 
-      {/* Floating Active Tool Indicator (Bottom Left) */}
-      <div className="absolute bottom-4 left-4 z-10 flex items-center gap-2 rounded-md border border-zinc-800 bg-black/90 px-3 py-1.5 text-xs text-zinc-300 shadow-lg backdrop-blur">
-        <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-        <span className="font-mono text-[11px] uppercase tracking-wider text-zinc-400">Tool:</span>
-        <span className="font-semibold text-zinc-200 capitalize">{activeTool}</span>
+      {/* Street / Satellite View Switcher (Bottom Left) */}
+      <div className="absolute bottom-4 left-4 z-10 flex items-center rounded-md border border-zinc-800 bg-black/90 p-0.5 text-xs shadow-lg backdrop-blur">
+        <Layers className="ml-1.5 mr-1 h-3.5 w-3.5 text-zinc-400" />
+        {(
+          [
+            { id: "osm", label: "Street" },
+            { id: "satellite", label: "Sat" },
+          ] as const
+        ).map((mode) => (
+          <button
+            key={mode.id}
+            onClick={() => setBackgroundMode(mode.id as TileBackgroundMode)}
+            className={`rounded px-2 py-0.5 text-[11px] font-medium transition-colors ${
+              backgroundMode === mode.id
+                ? "bg-zinc-800 text-white shadow-sm"
+                : "text-zinc-400 hover:text-zinc-200"
+            }`}
+          >
+            {mode.label}
+          </button>
+        ))}
       </div>
 
       {/* Floating Contextual Action Bar when 2+ features are selected (Bottom Center) */}
       {selectedCount > 1 && (
         <div
-          className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-950/95 px-4 py-2 text-xs shadow-2xl shadow-black backdrop-blur animate-in fade-in slide-in-from-bottom-2 duration-150"
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-950/95 px-4 py-2 text-xs shadow-2xl shadow-black backdrop-blur animate-in fade-in slide-in-from-bottom-2 duration-150"
           data-testid="contextual-action-bar"
         >
-          <div className="flex items-center gap-2 pr-2 border-r border-zinc-800">
-            <Badge variant="default" className="text-[10px] font-bold">
-              {selectedCount} Selected
-            </Badge>
+          <div className="flex items-center gap-2 pr-2 border-r border-zinc-800 text-[12px] font-bold">
+            {selectedCount} selected
           </div>
 
           <Button

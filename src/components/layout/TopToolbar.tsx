@@ -8,12 +8,11 @@ import {
   Save,
   Undo,
   Redo,
-  Layers,
   Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useEditorStore, TileBackgroundMode } from "@/store/editorStore";
+import { useEditorStore } from "@/store/editorStore";
 
 interface TopToolbarProps {
   onImportClick?: () => void;
@@ -38,8 +37,6 @@ export function TopToolbar({
   canUndo = false,
   canRedo = false,
 }: TopToolbarProps) {
-  const backgroundMode = useEditorStore((state) => state.backgroundMode);
-  const setBackgroundMode = useEditorStore((state) => state.setBackgroundMode);
   const storageStatus = useEditorStore((state) => state.storageStatus);
   const featureCount = useEditorStore((state) => state.features.length);
   const currentFileName = useEditorStore((state) => state.currentFileName);
@@ -152,31 +149,6 @@ export function TopToolbar({
         >
           <Redo className="h-3.5 w-3.5" />
         </Button>
-
-        <div className="mx-1 h-4 w-[1px] bg-zinc-800" />
-
-        {/* Background Tile Selector */}
-        <div className="flex items-center rounded-md border border-zinc-800 bg-zinc-950/60 p-0.5 text-xs">
-          <Layers className="ml-1.5 mr-1 h-3.5 w-3.5 text-zinc-400" />
-          {(
-            [
-              { id: "osm", label: "Street" },
-              { id: "satellite", label: "Sat" },
-            ] as const
-          ).map((mode) => (
-            <button
-              key={mode.id}
-              onClick={() => setBackgroundMode(mode.id as TileBackgroundMode)}
-              className={`rounded px-2 py-0.5 text-[11px] font-medium transition-colors ${
-                backgroundMode === mode.id
-                  ? "bg-zinc-800 text-white shadow-sm"
-                  : "text-zinc-400 hover:text-zinc-200"
-              }`}
-            >
-              {mode.label}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Right Actions */}
