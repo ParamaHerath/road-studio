@@ -75,14 +75,20 @@ describe("LeftSidebar", () => {
   it("supports Select All and Deselect All", () => {
     render(<LeftSidebar features={mockFeatures} />);
 
+    expect(screen.getByText("0/3 selected")).toBeInTheDocument();
+
     const selectAllBtn = screen.getByText("Select All");
     fireEvent.click(selectAllBtn);
 
     expect(useEditorStore.getState().selectedFeatureIds.size).toBe(3);
+    expect(screen.getByText("3/3 selected")).toBeInTheDocument();
     expect(screen.getByText("Deselect All")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText("Deselect All"));
+    // Clear selection icon
+    const clearBtn = screen.getByLabelText("Clear selection");
+    fireEvent.click(clearBtn);
     expect(useEditorStore.getState().selectedFeatureIds.size).toBe(0);
+    expect(screen.getByText("0/3 selected")).toBeInTheDocument();
   });
 
   it("virtualizes list to avoid DOM node explosion when thousands of features exist", () => {

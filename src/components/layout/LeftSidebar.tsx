@@ -11,10 +11,10 @@ import {
   MapPin,
   PanelLeftClose,
   PanelLeft,
+  X,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useEditorStore } from "@/store/editorStore";
 
 export interface FeatureListItem {
@@ -228,36 +228,23 @@ export const LeftSidebar = React.memo(function LeftSidebar({
       className="flex w-80 flex-col border-r border-zinc-800 bg-black/95 text-zinc-100 backdrop-blur z-10 shrink-0 h-[calc(100vh-3rem)]"
       data-testid="left-sidebar"
     >
-      {/* Top panel bar with Collapse toggle */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-800/70 bg-zinc-950/40">
-        <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">Road Network</span>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={toggleSidebar}
-          className="h-6 w-6 text-zinc-400 hover:text-white"
-          title="Collapse sidebar"
-          aria-label="Toggle sidebar"
-        >
-          <PanelLeftClose className="h-3.5 w-3.5" />
-        </Button>
-      </div>
-
       {/* Sidebar Header & Search */}
       <div className="flex flex-col gap-2 p-3 border-b border-zinc-800">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-300 uppercase tracking-wider">
             <Layers className="h-3.5 w-3.5 text-zinc-400" />
             <span>Road Segments</span>
-            <Badge variant="secondary" className="ml-1 text-[10px]">
-              {features.length}
-            </Badge>
           </div>
-          {selectedFeatureIds.size > 0 && (
-            <Badge variant="default" className="text-[10px]">
-              {selectedFeatureIds.size} selected
-            </Badge>
-          )}
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={toggleSidebar}
+            className="h-6 w-6 text-zinc-400 hover:text-white"
+            title="Collapse sidebar"
+            aria-label="Toggle sidebar"
+          >
+            <PanelLeftClose className="h-3.5 w-3.5" />
+          </Button>
         </div>
 
         {/* Search input */}
@@ -288,14 +275,21 @@ export const LeftSidebar = React.memo(function LeftSidebar({
             </span>
           </button>
 
-          {selectedFeatureIds.size > 0 && (
-            <button
-              onClick={clearSelection}
-              className="text-[11px] text-zinc-400 hover:text-white transition-colors"
-            >
-              Clear Selection
-            </button>
-          )}
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] text-zinc-400">
+              {selectedFeatureIds.size}/{features.length} selected
+            </span>
+            {selectedFeatureIds.size > 0 && (
+              <button
+                onClick={clearSelection}
+                className="p-0.5 rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+                title="Clear selection"
+                aria-label="Clear selection"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
