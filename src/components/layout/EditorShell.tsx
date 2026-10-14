@@ -11,6 +11,7 @@ interface EditorShellProps {
   features?: FeatureListItem[];
   selectedDetail?: SelectedFeatureDetail | null;
   onImportClick?: () => void;
+  importDisabled?: boolean;
   onSaveClick?: () => void;
   onExportClick?: () => void;
   onNewProjectClick?: () => void;
@@ -27,10 +28,11 @@ interface EditorShellProps {
   children?: React.ReactNode;
 }
 
-export function EditorShell({
+export const EditorShell = React.memo(function EditorShell({
   features = [],
   selectedDetail = null,
   onImportClick,
+  importDisabled = false,
   onSaveClick,
   onExportClick,
   onNewProjectClick,
@@ -46,12 +48,13 @@ export function EditorShell({
   onSnapSelected,
   children,
 }: EditorShellProps) {
-  const { selectedFeatureIds, clearSelection } = useEditorStore();
+  const clearSelection = useEditorStore((state) => state.clearSelection);
 
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-black text-zinc-100 font-sans">
       <TopToolbar
         onImportClick={onImportClick}
+        importDisabled={importDisabled}
         onSaveClick={onSaveClick}
         onExportClick={onExportClick}
         onNewProjectClick={onNewProjectClick}
@@ -67,7 +70,6 @@ export function EditorShell({
           onLocateFeature={onLocateFeature}
         />
         <MainCanvas
-          selectedCount={selectedFeatureIds.size}
           onCombineSelected={onCombineSelected}
           onJoinSelected={onJoinSelected}
           onSnapSelected={onSnapSelected}
@@ -77,7 +79,6 @@ export function EditorShell({
         </MainCanvas>
         <PropertiesPanel
           selectedDetail={selectedDetail}
-          selectedCount={selectedFeatureIds.size}
           onRenameFeature={onRenameFeature}
           onCombineSelected={onCombineSelected}
           onJoinSelected={onJoinSelected}
@@ -86,4 +87,4 @@ export function EditorShell({
       </div>
     </div>
   );
-}
+});

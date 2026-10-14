@@ -2,12 +2,12 @@
 
 import * as React from "react";
 import {
-  Route,
-  FolderOpen,
+  Waypoints,
+  Import,
   FilePlus,
   Save,
-  Undo2,
-  Redo2,
+  Undo,
+  Redo,
   Layers,
   Download,
 } from "lucide-react";
@@ -17,6 +17,7 @@ import { useEditorStore, TileBackgroundMode } from "@/store/editorStore";
 
 interface TopToolbarProps {
   onImportClick?: () => void;
+  importDisabled?: boolean;
   onSaveClick?: () => void;
   onExportClick?: () => void;
   onNewProjectClick?: () => void;
@@ -28,6 +29,7 @@ interface TopToolbarProps {
 
 export function TopToolbar({
   onImportClick,
+  importDisabled = false,
   onSaveClick,
   onExportClick,
   onNewProjectClick,
@@ -36,13 +38,11 @@ export function TopToolbar({
   canUndo = false,
   canRedo = false,
 }: TopToolbarProps) {
-  const {
-    backgroundMode,
-    setBackgroundMode,
-    storageStatus,
-    features,
-    currentFileName,
-  } = useEditorStore();
+  const backgroundMode = useEditorStore((state) => state.backgroundMode);
+  const setBackgroundMode = useEditorStore((state) => state.setBackgroundMode);
+  const storageStatus = useEditorStore((state) => state.storageStatus);
+  const featureCount = useEditorStore((state) => state.features.length);
+  const currentFileName = useEditorStore((state) => state.currentFileName);
 
   return (
     <header className="flex h-12 w-full items-center justify-between border-b border-zinc-800 bg-black/95 px-3 backdrop-blur z-20 select-none">
@@ -50,7 +50,7 @@ export function TopToolbar({
       <div className="flex items-center gap-3">
 
         <div className="flex items-center gap-2">
-          <Route className="h-5 w-5 text-white stroke-[2.25]" />
+          <Waypoints className="h-5 w-5 text-white stroke-[2.25]" />
           <div className="flex items-center gap-2">
             <span className="font-bold tracking-tight text-sm text-zinc-100">
               Road Studio
@@ -101,10 +101,11 @@ export function TopToolbar({
           variant="outline"
           size="sm"
           onClick={onImportClick}
+          disabled={importDisabled}
           className="gap-1.5 border-zinc-800 bg-zinc-900/80 text-zinc-200 hover:text-white hover:border-zinc-700"
           title="Import KML file"
         >
-          <FolderOpen className="h-3.5 w-3.5" />
+          <Import className="h-3.5 w-3.5" />
           <span>Import KML</span>
         </Button>
 
@@ -112,19 +113,19 @@ export function TopToolbar({
           variant="outline"
           size="sm"
           onClick={onSaveClick}
-          disabled={features.length === 0}
+          disabled={featureCount === 0}
           className="gap-1.5 border-zinc-800 bg-zinc-900/80 text-zinc-200 hover:text-white hover:border-zinc-700"
           title={
-            features.length > 0
-              ? `Save / Overwrite "${currentFileName}" (Ctrl+S) — ${features.length} segments remaining`
+            featureCount > 0
+              ? `Save / Overwrite "${currentFileName}" (Ctrl+S) — ${featureCount} segments remaining`
               : "No road segments loaded"
           }
         >
           <Save className="h-3.5 w-3.5" />
           <span>Save KML</span>
-          {features.length > 0 && (
+          {featureCount > 0 && (
             <Badge variant="secondary" className="text-[10px] px-1 py-0 ml-0.5 bg-zinc-800 text-zinc-300 font-mono">
-              {features.length}
+              {featureCount}
             </Badge>
           )}
         </Button>
@@ -139,7 +140,7 @@ export function TopToolbar({
           title="Undo (Ctrl+Z)"
           aria-label="Undo"
         >
-          <Undo2 className="h-3.5 w-3.5" />
+          <Undo className="h-3.5 w-3.5" />
         </Button>
         <Button
           variant="ghost"
@@ -149,7 +150,7 @@ export function TopToolbar({
           title="Redo (Ctrl+Y)"
           aria-label="Redo"
         >
-          <Redo2 className="h-3.5 w-3.5" />
+          <Redo className="h-3.5 w-3.5" />
         </Button>
 
         <div className="mx-1 h-4 w-[1px] bg-zinc-800" />
@@ -161,7 +162,6 @@ export function TopToolbar({
             [
               { id: "osm", label: "Street" },
               { id: "satellite", label: "Sat" },
-              { id: "minimal", label: "Grid" },
             ] as const
           ).map((mode) => (
             <button

@@ -1,13 +1,13 @@
 import { create } from "zustand";
 import { RoadFeature, ImportSummary } from "@/types/road";
 import { combineFeatures } from "@/lib/geo/combine";
-import { joinFeatures, JoinCandidate } from "@/lib/geo/join";
+import { joinFeatures, bulkJoinFeatures, JoinCandidate } from "@/lib/geo/join";
 import { applySnap, SnapCandidate, SnapMode } from "@/lib/geo/snap";
 import { clearProjectSession, saveProjectSession } from "@/lib/db/projectDb";
 import { serializeRoadFeaturesToKml } from "@/lib/kml/serializer";
 import { saveKmlToDisk, SaveKmlResult } from "@/lib/kml/save";
 
-export type TileBackgroundMode = "osm" | "satellite" | "minimal";
+export type TileBackgroundMode = "osm" | "satellite";
 export type StorageStatus = "idle" | "saving" | "saved" | "restored";
 
 export interface HistorySnapshot {
@@ -67,7 +67,10 @@ export interface EditorUiState {
   toggleFeatureVisibility: (id: string) => void;
   renameFeature: (id: string, newName: string) => void;
   combineSelectedFeatures: (newName: string) => RoadFeature | null;
-  joinSelectedFeatures: (candidate: JoinCandidate, newName: string) => RoadFeature | null;
+  joinSelectedFeatures: (
+    candidateOrName: JoinCandidate | string,
+    optionalName?: string
+  ) => RoadFeature | null;
   snapSelectedFeatures: (
     candidate: SnapCandidate,
     mode: SnapMode
@@ -146,32 +149,56 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
       };
     }
 
-    const { kmlString } = serializeRoadFeaturesToKml(current.features, {
-      projectName: current.currentFileName.replace(/\.kml$/i, ""),
-      includeExtendedData: true,
-    });
-
-    const result = await saveKmlToDisk(
-      kmlString,
-      current.currentFileName,
-      current.fileHandle
-    );
-
-    if (result.success) {
-      set({
-        storageStatus: "saved",
-        saveStatusMessage: `${result.message} (${current.features.length} segments remaining)`,
-        fileHandle: result.handle || current.fileHandle,
-        currentFileName: result.handle?.name || current.currentFileName,
+    try {
+      const { kmlString } = serializeRoadFeaturesToKml(current.features, {
+        projectName: current.currentFileName.replace(/\.kml$/i, ""),
+        includeExtendedData: true,
       });
-      saveProjectSession(current.features, current.selectedFeatureIds, current.importSummary);
-    } else {
+
+      const result = await saveKmlToDisk(
+        kmlString,
+        current.currentFileName,
+        current.fileHandle
+      );
+
+      if (result.success) {
+        set({
+          storageStatus: "saved",
+          saveStatusMessage: `${result.message} (${current.features.length} segments remaining)`,
+          fileHandle: result.handle || current.fileHandle,
+          currentFileName: result.handle?.name || current.currentFileName,
+        });
+        try {
+          await saveProjectSession(
+            current.features,
+            current.selectedFeatureIds,
+            current.importSummary
+          );
+        } catch (error) {
+          console.warn("Failed to persist the saved KML session:", error);
+        }
+      } else {
+        set({
+          saveStatusMessage: result.message,
+        });
+      }
+      return result;
+    } catch (error) {
+      const message = `Failed to save KML: ${
+        error instanceof Error ? error.message : String(error)
+      }`;
       set({
-        saveStatusMessage: result.message,
+        saveStatusMessage: message,
+        storageStatus: "idle",
       });
+      console.warn(message, error);
+      return {
+        success: false,
+        handle: current.fileHandle,
+        mode: "download" as const,
+        message,
+      };
     }
-
-    return result;
   },
 
   restoreSession: (features, selectedIds, summary) =>
@@ -250,19 +277,32 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
     return combinedFeature;
   },
 
-  joinSelectedFeatures: (candidate: JoinCandidate, newName: string) => {
+  joinSelectedFeatures: (
+    candidateOrName: JoinCandidate | string,
+    optionalName?: string
+  ) => {
     const current = get();
     const toJoin = current.features.filter((f) => current.selectedFeatureIds.has(f.id));
-    if (toJoin.length !== 2) return null;
+    if (toJoin.length < 2) return null;
 
     const snapshot: HistorySnapshot = {
       features: current.features.map((f) => ({ ...f })),
       selectedFeatureIds: new Set(current.selectedFeatureIds),
     };
 
-    const joinedFeature = joinFeatures(toJoin[0], toJoin[1], candidate, newName);
-    const toJoinIdSet = new Set(toJoin.map((f) => f.id));
+    let joinedFeature: RoadFeature;
+    const resolvedName =
+      typeof candidateOrName === "string"
+        ? candidateOrName
+        : optionalName || `${toJoin[0].name} (Joined)`;
 
+    if (typeof candidateOrName !== "string" && toJoin.length === 2) {
+      joinedFeature = joinFeatures(toJoin[0], toJoin[1], candidateOrName, resolvedName);
+    } else {
+      joinedFeature = bulkJoinFeatures(toJoin, resolvedName);
+    }
+
+    const toJoinIdSet = new Set(toJoin.map((f) => f.id));
     const remainingFeatures = current.features.filter((f) => !toJoinIdSet.has(f.id));
     const nextFeatures = [...remainingFeatures, joinedFeature];
     const nextSummary = current.importSummary

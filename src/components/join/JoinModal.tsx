@@ -13,7 +13,7 @@ interface JoinModalProps {
   selectedFeatures: RoadFeature[];
   allFeatures: RoadFeature[];
   onClose: () => void;
-  onConfirmJoin: (candidate: JoinCandidate, name: string) => void;
+  onConfirmJoin: (candidateOrName: JoinCandidate | string, name?: string) => void;
 }
 
 export function JoinModal({
@@ -28,7 +28,8 @@ export function JoinModal({
 
   const candidates: JoinCandidate[] = React.useMemo(() => {
     if (selectedFeatures.length !== 2) return [];
-    return findJoinCandidates(selectedFeatures[0], selectedFeatures[1], 500);
+    // Allow any gap distance
+    return findJoinCandidates(selectedFeatures[0], selectedFeatures[1], Infinity);
   }, [selectedFeatures]);
 
   const activeCandidate = React.useMemo(() => {
@@ -47,7 +48,9 @@ export function JoinModal({
 
   const roadName = userRoadName !== null ? userRoadName : defaultName;
 
-  if (!isOpen || selectedFeatures.length !== 2) return null;
+  const isExactTwo = selectedFeatures.length === 2;
+
+  if (!isOpen || selectedFeatures.length < 2) return null;
 
   const handleCloseModal = () => {
     setSelectedCandidateId(null);
@@ -56,8 +59,12 @@ export function JoinModal({
   };
 
   const handleConfirm = () => {
-    if (activeCandidate && roadName.trim()) {
-      onConfirmJoin(activeCandidate, roadName.trim());
+    if (roadName.trim()) {
+      if (isExactTwo && activeCandidate) {
+        onConfirmJoin(activeCandidate, roadName.trim());
+      } else {
+        onConfirmJoin(roadName.trim());
+      }
       handleCloseModal();
     }
   };
@@ -94,12 +101,63 @@ export function JoinModal({
 
         {/* Content */}
         <div className="p-5 flex flex-col gap-4 max-h-[75vh] overflow-y-auto">
-          {candidates.length === 0 ? (
+          {!isExactTwo ? (
+            <div className="flex flex-col gap-3">
+              <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge variant="default" className="text-[11px] font-bold">
+                    {selectedFeatures.length} Segments Selected
+                  </Badge>
+                  <span className="text-xs text-zinc-300 font-medium">Bulk Join</span>
+                </div>
+                <p className="text-xs text-zinc-400 leading-relaxed">
+                  All {selectedFeatures.length} selected segments will be automatically chained together into a single continuous <span className="text-zinc-200 font-mono font-medium">LineString</span>.
+                </p>
+                <div className="mt-2.5 space-y-1 text-[11px] text-zinc-400">
+                  <div className="flex items-center gap-1.5">
+                    <Check className="h-3.5 w-3.5 text-emerald-400" />
+                    <span>Direction-insensitive: automatically detects start/end alignment</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Check className="h-3.5 w-3.5 text-emerald-400" />
+                    <span>Stitches nearest endpoints and closes any gaps between segments</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Check className="h-3.5 w-3.5 text-emerald-400" />
+                    <span>Exports as a fully editable, standard Path in Google Earth Pro &amp; Web</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Road Designation Input */}
+              <div className="flex flex-col gap-2 pt-1">
+                <label className="text-xs font-semibold text-zinc-300">
+                  Joined Road Name:
+                </label>
+                <Input
+                  value={roadName}
+                  onChange={(e) => setUserRoadName(e.target.value)}
+                  placeholder="e.g. A1 Highway"
+                  className="bg-zinc-900 text-sm font-semibold text-zinc-100 border-zinc-800"
+                  data-testid="join-name-input"
+                />
+
+                {duplicateNameFeature && (
+                  <div className="flex items-start gap-2 rounded border border-amber-500/30 bg-amber-500/10 p-2 text-xs text-amber-300">
+                    <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400 mt-0.5" />
+                    <p className="text-[11px]">
+                      Another visible road is named &ldquo;{duplicateNameFeature.name}&rdquo;.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : candidates.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-6 text-center text-zinc-400">
               <AlertTriangle className="h-8 w-8 text-amber-400 mb-2" />
-              <p className="text-xs font-semibold text-zinc-200">No Compatible Endpoints Found</p>
+              <p className="text-xs font-semibold text-zinc-200">No Valid Segments Found</p>
               <p className="text-[11px] text-zinc-500 mt-1 max-w-xs">
-                The endpoints of these two roads are further than 500 metres apart. Use &ldquo;Combine&rdquo; to group them safely as a multipart road.
+                The selected features do not contain valid coordinates to join.
               </p>
             </div>
           ) : (
@@ -201,7 +259,7 @@ export function JoinModal({
             variant="default"
             size="sm"
             onClick={handleConfirm}
-            disabled={!activeCandidate || !roadName.trim()}
+            disabled={!roadName.trim() || (isExactTwo && !activeCandidate)}
             className="gap-1.5"
             data-testid="confirm-join-btn"
           >

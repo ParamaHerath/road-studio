@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { findJoinCandidates, joinFeatures } from "./join";
+import { findJoinCandidates, joinFeatures, bulkJoinFeatures } from "./join";
 import { RoadFeature } from "@/types/road";
 
 describe("Join Endpoints Logic", () => {
@@ -113,5 +113,52 @@ describe("Join Endpoints Logic", () => {
     expect(candidates.length).toBeGreaterThanOrEqual(2);
     expect(candidates[0].isAmbiguous).toBe(true);
     expect(candidates[0].ambiguityReason).toBeDefined();
+  });
+
+  it("bulk joins 3 or more segments direction-insensitively and closes gaps", () => {
+    // Example requested by user:
+    // A: (0, 0) -> (0, 5)
+    // B: (0, 15) -> (0, 7) [opposite direction with gap between 5 and 7]
+    const featA: RoadFeature = {
+      id: "fa",
+      name: "Segment A",
+      geometry: { type: "LineString", coordinates: [[0, 0], [0, 5]] },
+      visible: true,
+      properties: {},
+      metadata: { componentCount: 1, coordinateCount: 2, lengthMeters: 5000, bbox: [0, 0, 0, 5] },
+    };
+
+    const featB: RoadFeature = {
+      id: "fb",
+      name: "Segment B",
+      geometry: { type: "LineString", coordinates: [[0, 15], [0, 7]] },
+      visible: true,
+      properties: {},
+      metadata: { componentCount: 1, coordinateCount: 2, lengthMeters: 8000, bbox: [0, 7, 0, 15] },
+    };
+
+    const featC: RoadFeature = {
+      id: "fc",
+      name: "Segment C",
+      geometry: { type: "LineString", coordinates: [[0, 20], [0, 25]] },
+      visible: true,
+      properties: {},
+      metadata: { componentCount: 1, coordinateCount: 2, lengthMeters: 5000, bbox: [0, 20, 0, 25] },
+    };
+
+    const joined = bulkJoinFeatures([featA, featB, featC], "Bulk Highway");
+
+    expect(joined.geometry.type).toBe("LineString");
+    // featA: (0,0) -> (0,5)
+    // featB reversed so (0,7) meets (0,5): (0,7) -> (0,15)
+    // featC: (0,20) meets (0,15): (0,20) -> (0,25)
+    expect(joined.geometry.coordinates).toEqual([
+      [0, 0],
+      [0, 5],
+      [0, 7],
+      [0, 15],
+      [0, 20],
+      [0, 25],
+    ]);
   });
 });

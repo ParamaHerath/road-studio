@@ -40,6 +40,9 @@ function getDb(): Promise<IDBPDatabase<RoadStudioDB>> | null {
           db.createObjectStore("sessions");
         }
       },
+    }).catch((error) => {
+      dbPromise = null;
+      throw error;
     });
   }
   return dbPromise;

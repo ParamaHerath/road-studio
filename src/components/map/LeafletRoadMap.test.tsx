@@ -35,8 +35,10 @@ vi.mock("leaflet", () => {
       map: vi.fn(() => mockMap),
       featureGroup: vi.fn(() => mockFeatureGroup),
       polyline: vi.fn(() => mockPolyline),
+      circleMarker: vi.fn(() => ({ addTo: vi.fn().mockReturnThis() })),
       tileLayer: vi.fn(() => ({ addTo: vi.fn().mockReturnThis() })),
       latLngBounds: vi.fn(() => ({ isValid: () => true })),
+      canvas: vi.fn(() => ({ padding: 0.5 })),
       DomEvent: { stopPropagation: vi.fn() },
     },
   };
@@ -78,18 +80,6 @@ describe("LeafletRoadMap", () => {
     expect(screen.getByTestId("leaflet-map-container")).toBeInTheDocument();
   });
 
-  it("applies canvas-grid class when minimal background mode is selected", () => {
-    render(
-      <LeafletRoadMap
-        features={[]}
-        selectedFeatureIds={new Set()}
-        backgroundMode="minimal"
-      />
-    );
-    const container = screen.getByTestId("leaflet-map-container");
-    expect(container.className).toContain("canvas-grid");
-  });
-
   it("renders polylines for visible road features", () => {
     render(
       <LeafletRoadMap
@@ -99,5 +89,23 @@ describe("LeafletRoadMap", () => {
       />
     );
     expect(mockFeatureGroup.addLayer).toHaveBeenCalled();
+  });
+
+  it("configures Leaflet map with canvas renderer and preferCanvas option for performance", async () => {
+    const L = (await import("leaflet")).default;
+    render(
+      <LeafletRoadMap
+        features={[]}
+        selectedFeatureIds={new Set()}
+        backgroundMode="osm"
+      />
+    );
+    expect(L.map).toHaveBeenCalledWith(
+      expect.any(HTMLElement),
+      expect.objectContaining({
+        preferCanvas: true,
+      })
+    );
+    expect(L.canvas).toHaveBeenCalled();
   });
 });
