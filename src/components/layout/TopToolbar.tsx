@@ -162,7 +162,6 @@ export function TopToolbar({
             [
               { id: "osm", label: "Street" },
               { id: "satellite", label: "Sat" },
-              { id: "minimal", label: "Grid" },
             ] as const
           ).map((mode) => (
             <button

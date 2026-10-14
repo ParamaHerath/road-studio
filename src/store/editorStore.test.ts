@@ -49,8 +49,6 @@ describe("editorStore", () => {
     const { setBackgroundMode } = useEditorStore.getState();
     setBackgroundMode("satellite");
     expect(useEditorStore.getState().backgroundMode).toBe("satellite");
-    setBackgroundMode("minimal");
-    expect(useEditorStore.getState().backgroundMode).toBe("minimal");
   });
 
   it("should update search query", () => {

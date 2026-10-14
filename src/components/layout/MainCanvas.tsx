@@ -7,7 +7,6 @@ import {
   MapPin,
   X,
   Compass,
-  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,16 +40,13 @@ export const MainCanvas = React.memo(function MainCanvas({
       data-testid="main-canvas"
     >
       {/* Background layer according to mode */}
-      {backgroundMode === "minimal" ? (
-        <div className="absolute inset-0 canvas-grid pointer-events-none z-0" />
-      ) : backgroundMode === "satellite" ? (
+      {backgroundMode === "satellite" ? (
         <div className="absolute top-4 right-4 z-10 max-w-sm rounded-lg border border-amber-500/40 bg-zinc-950/90 p-3 text-xs text-amber-200 shadow-xl backdrop-blur">
           <div className="flex items-start gap-2">
-            <AlertCircle className="h-4 w-4 shrink-0 text-amber-400 mt-0.5" />
             <div>
               <p className="font-semibold text-zinc-100">Satellite Provider Not Configured</p>
               <p className="text-[11px] text-zinc-300 mt-1">
-                To respect terms of service and avoid paid API key dependencies, configure a custom imagery tile URL in settings. Falling back to clean grid mode.
+                Configure a custom imagery tile URL in settings to display satellite imagery.
               </p>
             </div>
           </div>

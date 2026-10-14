@@ -80,18 +80,6 @@ describe("LeafletRoadMap", () => {
     expect(screen.getByTestId("leaflet-map-container")).toBeInTheDocument();
   });
 
-  it("applies canvas-grid class when minimal background mode is selected", () => {
-    render(
-      <LeafletRoadMap
-        features={[]}
-        selectedFeatureIds={new Set()}
-        backgroundMode="minimal"
-      />
-    );
-    const container = screen.getByTestId("leaflet-map-container");
-    expect(container.className).toContain("canvas-grid");
-  });
-
   it("renders polylines for visible road features", () => {
     render(
       <LeafletRoadMap

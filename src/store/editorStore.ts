@@ -7,7 +7,7 @@ import { clearProjectSession, saveProjectSession } from "@/lib/db/projectDb";
 import { serializeRoadFeaturesToKml } from "@/lib/kml/serializer";
 import { saveKmlToDisk, SaveKmlResult } from "@/lib/kml/save";
 
-export type TileBackgroundMode = "osm" | "satellite" | "minimal";
+export type TileBackgroundMode = "osm" | "satellite";
 export type StorageStatus = "idle" | "saving" | "saved" | "restored";
 
 export interface HistorySnapshot {
@@ -149,32 +149,56 @@ export const useEditorStore = create<EditorUiState>((set, get) => ({
       };
     }
 
-    const { kmlString } = serializeRoadFeaturesToKml(current.features, {
-      projectName: current.currentFileName.replace(/\.kml$/i, ""),
-      includeExtendedData: true,
-    });
-
-    const result = await saveKmlToDisk(
-      kmlString,
-      current.currentFileName,
-      current.fileHandle
-    );
-
-    if (result.success) {
-      set({
-        storageStatus: "saved",
-        saveStatusMessage: `${result.message} (${current.features.length} segments remaining)`,
-        fileHandle: result.handle || current.fileHandle,
-        currentFileName: result.handle?.name || current.currentFileName,
+    try {
+      const { kmlString } = serializeRoadFeaturesToKml(current.features, {
+        projectName: current.currentFileName.replace(/\.kml$/i, ""),
+        includeExtendedData: true,
       });
-      saveProjectSession(current.features, current.selectedFeatureIds, current.importSummary);
-    } else {
+
+      const result = await saveKmlToDisk(
+        kmlString,
+        current.currentFileName,
+        current.fileHandle
+      );
+
+      if (result.success) {
+        set({
+          storageStatus: "saved",
+          saveStatusMessage: `${result.message} (${current.features.length} segments remaining)`,
+          fileHandle: result.handle || current.fileHandle,
+          currentFileName: result.handle?.name || current.currentFileName,
+        });
+        try {
+          await saveProjectSession(
+            current.features,
+            current.selectedFeatureIds,
+            current.importSummary
+          );
+        } catch (error) {
+          console.warn("Failed to persist the saved KML session:", error);
+        }
+      } else {
+        set({
+          saveStatusMessage: result.message,
+        });
+      }
+      return result;
+    } catch (error) {
+      const message = `Failed to save KML: ${
+        error instanceof Error ? error.message : String(error)
+      }`;
       set({
-        saveStatusMessage: result.message,
+        saveStatusMessage: message,
+        storageStatus: "idle",
       });
+      console.warn(message, error);
+      return {
+        success: false,
+        handle: current.fileHandle,
+        mode: "download" as const,
+        message,
+      };
     }
-
-    return result;
   },
 
   restoreSession: (features, selectedIds, summary) =>

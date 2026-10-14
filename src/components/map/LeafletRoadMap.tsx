@@ -49,6 +49,25 @@ export function LeafletRoadMap({
     if (!mapContainerRef.current) return;
     if (mapInstanceRef.current) return;
 
+    const canvasRenderer = L.canvas({ padding: 0.5 });
+    if (!canvasRenderer) return;
+
+    // Leaflet can deliver one queued redraw after its canvas context is
+    // destroyed during React teardown. Ignore that stale frame safely.
+    const renderer = canvasRenderer as L.Canvas & {
+      _ctx?: CanvasRenderingContext2D;
+      _redraw: () => void;
+      _redrawRequest?: number | null;
+    };
+    const redraw = renderer._redraw;
+    renderer._redraw = function () {
+      if (!renderer._ctx) {
+        renderer._redrawRequest = null;
+        return;
+      }
+      redraw.call(renderer);
+    };
+
     // Default center on Sri Lanka: [7.8731, 80.7718], zoom 8
     const map = L.map(mapContainerRef.current, {
       center: [7.8731, 80.7718],
@@ -57,10 +76,10 @@ export function LeafletRoadMap({
       attributionControl: true,
       // Enable canvas vector rendering for high performance with thousands of road segments
       preferCanvas: true,
-      renderer: L.canvas({ padding: 0.5 }),
+      renderer: canvasRenderer,
     });
 
-    canvasRendererRef.current = L.canvas({ padding: 0.5 });
+    canvasRendererRef.current = canvasRenderer;
     mapInstanceRef.current = map;
 
     const featureGroup = L.featureGroup().addTo(map);
@@ -76,6 +95,14 @@ export function LeafletRoadMap({
 
     return () => {
       clearTimeout(timer);
+
+      // Leaflet schedules canvas redraws with requestAnimationFrame. Cancel any
+      // pending redraw before removing the map so it cannot use a torn-down context.
+      if (renderer._redrawRequest != null) {
+        cancelAnimationFrame(renderer._redrawRequest);
+        renderer._redrawRequest = null;
+      }
+
       map.remove();
       mapInstanceRef.current = null;
       canvasRendererRef.current = null;
@@ -280,7 +307,7 @@ export function LeafletRoadMap({
   return (
     <div
       ref={mapContainerRef}
-      className={`h-full w-full ${backgroundMode === "minimal" ? "canvas-grid" : ""}`}
+      className="h-full w-full"
       data-testid="leaflet-map-container"
     />
   );
